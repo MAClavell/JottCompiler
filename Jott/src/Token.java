@@ -39,7 +39,7 @@ public class Token {
      * Get this token's text
      * @return string text of the token
      */
-    public String GetTokenText()
+    public String getTokenText()
     {
         return tokenText;
     }
@@ -47,7 +47,7 @@ public class Token {
      * Get this token's type
      * @return TokenType type of the token
      */
-    public TokenType GetTokenType()
+    public TokenType getTokenType()
     {
         return type;
     }
@@ -55,7 +55,7 @@ public class Token {
      * Get this token's line number
      * @return int line number of the token
      */
-    public int GetLineNum()
+    public int getLineNum()
     {
         return lineNum;
     }
@@ -63,7 +63,7 @@ public class Token {
      * Get this token's column start
      * @return int column this token starts
      */
-    public int GetColumnStart()
+    public int getColumnStart()
     {
         return columnStart;
     }
@@ -71,7 +71,7 @@ public class Token {
      * Get this token's column end
      * @return int column this token ends
      */
-    public int GetColumnEnd()
+    public int getColumnEnd()
     {
         return columnEnd;
     }
