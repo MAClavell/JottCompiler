@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+
 public class Jott {
 
     public static void main(String[] args) {
@@ -13,8 +15,14 @@ public class Jott {
            return;
         }
 
-        //Get file input
-        String fileText = FileInput.readFile(args[0]);
-        System.out.println("File: " + fileText);
+        //Read in the file
+        String text = FileInput.readFile(args[0]);
+        System.out.println(text + '\n');
+
+        //Create tokens from file
+        ArrayList<Token> tokens = Scanner.tokenize(text, args[0]);
+        for (Token t : tokens) {
+            System.out.println(t);
+        }
     }
 }

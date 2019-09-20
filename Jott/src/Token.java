@@ -2,8 +2,8 @@
  * Enum representing the type of token for the parser
  */
 enum TokenType {
-    String, ID, RationalNumber, RealNumber, Assign, EndStmt, StartParen, EndParen,
-    Power, Divide, Mult, Minus, Plus;
+    String, ID, Integer, Double, Assign, EndStmt, StartParen, EndParen,
+    Power, Divide, Mult, Minus, Plus, Comma;
 }
 
 /**
@@ -20,11 +20,11 @@ public class Token {
 
     /**
      * Construct a token object
-     * @param tokenText  The text for this token
-     * @param type  The type of this token
-     * @param lineNum  The line number this token appears on
-     * @param columnStart  The column this token starts
-     * @param columnEnd  The column this token ends
+     * @param tokenText The text for this token
+     * @param type The type of this token
+     * @param lineNum The line number this token appears on
+     * @param columnStart The column this token starts
+     * @param columnEnd The column this token ends
      */
     public Token(String tokenText, TokenType type, int lineNum, int columnStart, int columnEnd)
     {
@@ -74,5 +74,10 @@ public class Token {
     public int getColumnEnd()
     {
         return columnEnd;
+    }
+
+    @Override
+    public String toString() {
+        return type + ": '" + tokenText + "', Line: " + lineNum + ", Columns: " + columnStart + "-" + columnEnd;
     }
 }

@@ -18,10 +18,10 @@ public class FileInput {
             //The buffered reader to read the file
             BufferedReader bufferedReader = new BufferedReader(new FileReader(new File(fileName)));
             //A single line
-            String line="";
+            int c;
             //Reads the file line-by-line
-            while((line=bufferedReader.readLine())!=null){
-                file+=line;
+            while((c=bufferedReader.read())!=-1){
+                file+=(char)c;
             }
         } catch (IOException e) {
             System.err.println("Your file was not found");
