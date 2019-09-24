@@ -79,3 +79,21 @@ Predict:
     start_paren{(}
     end_paren{)}
     end_stmt{;}
+    char{l_char | u_char | digit}
+    l_char{a | b | c | d | e | f | g | h | i | j | k | l | m | n | o | p | q | r | s | t | u | v | w | x | y | z}
+    u_char{A | B | C | D | E | F | G | H | I | J | K | L | M | N | O | P | Q | R | S | T | U | V | W | X | Y | Z}
+    digit{0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9}
+    sign{- | + | digit}
+    id{l_char}
+    stmt{print< | Double | Integer | String | l_char | " | concat | charAt | - | + | digit | .}
+    expr{l_char | " | concat | charAt | - | + | digit | .}
+    print{print<}
+    asmt{Double, Integer, String}
+    op{+ | * | / | + | - | ^}
+    dbl{- | + | digit | .}
+    d_expr{l_char | - | + | digit | .}
+    int{- | + | digit}
+    i_expr{l_char | - | + | digit}
+    str_literal{"}
+    str{<space> | l_char | u_char | digit}
+    s_expr{" | l_char | concat | charAt}
