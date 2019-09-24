@@ -7,16 +7,21 @@ public class Parser {
      * @return the parse tree
      */
     public static TreeNode parse(ArrayList<Token> tokenStream){
-        TreeNode root=new TreeNode(null);
+        State state = new State(State.stateType.PROGRAM);
+        TreeNode root= new TreeNode(state);
         return root;
     }
 
     ///Predict Functions
     public void program(TreeNode node){
-
+       // if(State.stateType.PRINT.equals())
+       // {
+       //     print();
+       // }
     }
     public void stmt_list(TreeNode node){
-
+        State state = new State(State.stateType.STMT_LIST);
+        node.addTreeNode(state);
     }
     public void end_paren(TreeNode node) {
 
