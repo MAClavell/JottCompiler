@@ -1,7 +1,12 @@
 import java.util.ArrayList;
 
 public class Parser {
-    public TreeNode parse(ArrayList<Token> tokenStream){
-        return null;
+    public static TreeNode parse(ArrayList<Token> tokenStream){
+        TreeNode root=new TreeNode(null);
+        return root;
+    }
+
+    public static void program(){
+
     }
 }

@@ -3,31 +3,38 @@ import java.util.ArrayList;
 public class TreeNode {
 
     private ArrayList<TreeNode> branches;
-    private String contents;
+    private State state;
+    private Token token;
 
-    public TreeNode(String contents){
+    public TreeNode(State state){
         branches=new ArrayList<TreeNode>();
-        this.contents=contents;
+        this.state=state;
+        this.token=null;
+    }
+
+    public TreeNode(State state, Token token){
+        branches=new ArrayList<TreeNode>();
+        this.state=state;
+        this.token=token;
     }
 
     public boolean hasChildren(){
         return branches.size()!=0;
     }
 
-    public void addTreeNode(String contents){
-        branches.add(new TreeNode(contents));
+    public void addTreeNode(State state){
+        branches.add(new TreeNode(state));
     }
 
-    public String getContents(){
-        return contents;
+    public void addTreeNode(State state, Token token){
+        branches.add(new TreeNode(state, token));
     }
 
-    @Override
-    public String toString() {
-        String builtString=contents;
-        for(TreeNode childBranches:branches){
-            contents+=childBranches.branches;
-        }
-        return builtString;
+    public State getState(){
+        return state;
+    }
+
+    public Token getToken(){
+        return token;
     }
 }
