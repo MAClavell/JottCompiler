@@ -1,6 +1,6 @@
 Nonterminals:
     $$
-    print<
+    print
     concat
     charAt
     Double
@@ -24,8 +24,8 @@ Nonterminals:
     =
 
 First:
-    program{$$ | print< | Double | Integer | String | l_char | " | concat | charAt | - | + | digit | .}
-    stmt_list{print< | Double | Integer | String | l_char | " | concat | charAt | - | + | digit | . | epsilon}
+    program{$$ | print | Double | Integer | String | l_char | " | concat | charAt | - | + | digit | .}
+    stmt_list{print | Double | Integer | String | l_char | " | concat | charAt | - | + | digit | . | epsilon}
     start_paren{(}
     end_paren{)}
     end_stmt{;}
@@ -35,9 +35,9 @@ First:
     digit{0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9}
     sign{- | + | epsilon}
     id{l_char}
-    stmt{print< | Double | Integer | String | l_char | " | concat | charAt | - | + | digit | .}
+    stmt{print | Double | Integer | String | l_char | " | concat | charAt | - | + | digit | .}
     expr{l_char | " | concat | charAt | - | + | digit | .}
-    print{print<}
+    print{print}
     asmt{Double, Integer, String}
     op{+ | * | / | + | - | ^}
     dbl{- | + | digit | .}
@@ -53,17 +53,17 @@ Follow:
     stmt_list{$$}
     start_paren{l_char | " | concat | charAt | - | + | digit | .}
     end_paren{; | , | )}
-    end_stmt{print< | Double | Integer | String | l_char | " | concat | charAt | - | + | digit | . | ; | $$}
+    end_stmt{print | Double | Integer | String | l_char | " | concat | charAt | - | + | digit | . | ; | $$}
     char{<space> | l_char | u_char | digit | = | ; | , | ) | + | * | / | + | - | ^}
     l_char{<space> | l_char | u_char | digit | = | ; | , | ) | + | * | / | + | - | ^}
     u_char{<space> | l_char | u_char | digit | = | ; | , | ) | + | * | / | + | - | ^}
     digit{<space> | l_char | u_char | digit | = | ; | , | ) | + | * | / | + | - | ^ | .}
     sign{digit}
     id{= | ; | , | ) | + | * | / | + | - | ^}
-    stmt{print< | Double | Integer | String | l_char | " | concat | charAt | - | + | digit | . | $$}
+    stmt{print | Double | Integer | String | l_char | " | concat | charAt | - | + | digit | . | $$}
     expr{;}
-    print{print< | Double | Integer | String | l_char | " | concat | charAt | - | + | digit | . | $$}
-    asmt{print< | Double | Integer | String | l_char | " | concat | charAt | - | + | digit | . | $$}
+    print{print | Double | Integer | String | l_char | " | concat | charAt | - | + | digit | . | $$}
+    asmt{print | Double | Integer | String | l_char | " | concat | charAt | - | + | digit | . | $$}
     op{l_char | - | + | digit | .}
     dbl{; | + | * | / | + | - | ^}
     d_expr{; | + | * | / | + | - | ^}
@@ -74,8 +74,8 @@ Follow:
     s_expr{; | , | )}
 
 Predict:
-    program{$$ | print< | Double | Integer | String | l_char | " | concat | charAt | - | + | digit | .}
-    stmt_list{print< | Double | Integer | String | l_char | " | concat | charAt | - | + | digit | . | $$}
+    program{$$ | print | Double | Integer | String | l_char | " | concat | charAt | - | + | digit | .}
+    stmt_list{print | Double | Integer | String | l_char | " | concat | charAt | - | + | digit | . | $$}
     start_paren{(}
     end_paren{)}
     end_stmt{;}
@@ -85,9 +85,9 @@ Predict:
     digit{0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9}
     sign{- | + | digit}
     id{l_char}
-    stmt{print< | Double | Integer | String | l_char | " | concat | charAt | - | + | digit | .}
+    stmt{print | Double | Integer | String | l_char | " | concat | charAt | - | + | digit | .}
     expr{l_char | " | concat | charAt | - | + | digit | .}
-    print{print<}
+    print{print}
     asmt{Double, Integer, String}
     op{+ | * | / | + | - | ^}
     dbl{- | + | digit | .}
