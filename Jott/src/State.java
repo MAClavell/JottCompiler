@@ -1,6 +1,8 @@
 public class State {
-    public enum stateType{
-
+    //The type of state that the node represents
+    enum stateType{
+        PROGRAM, STMT_LIST, START_PAREN, END_PAREN, END_STATEMENT, CHAR, L_CHAR, U_CHAR, DIGIT,
+        SIGN, ID, STMT, EXPR, PRINT, ASMT, OP, DBL, D_EXPR, INT, I_EXPR, STR_LITERAL, STR, S_EXPR;
     }
 
     //The State that the parse tree is in
