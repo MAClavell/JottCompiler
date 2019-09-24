@@ -1,0 +1,74 @@
+Nonterminals:
+    $$
+    print<
+    concat
+    charAt
+    Double
+    Integer
+    String
+    digit(includes 0..9)
+    l_char(includes a..z)
+    u_char(includes A..Z)
+    <space>
+    (
+    )
+    ;
+    "
+    .
+    ,
+    -
+    +
+    /
+    *
+    ^
+    =
+
+First:
+    program{$$ | print< | Double | Integer | String | l_char | " | concat | charAt | - | + | digit | .}
+    stmt_list{print< | Double | Integer | String | l_char | " | concat | charAt | - | + | digit | . | epsilon}
+    start_paren{(}
+    end_paren{)}
+    end_stmt{;}
+    char{l_char | u_char | digit}
+    l_char{a | b | c | d | e | f | g | h | i | j | k | l | m | n | o | p | q | r | s | t | u | v | w | x | y | z}
+    u_char{A | B | C | D | E | F | G | H | I | J | K | L | M | N | O | P | Q | R | S | T | U | V | W | X | Y | Z}
+    digit{0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9}
+    sign{- | + | epsilon}
+    id{l_char}
+    stmt{print< | Double | Integer | String | l_char | " | concat | charAt | - | + | digit | .}
+    expr{l_char | " | concat | charAt | - | + | digit | .}
+    print{print<}
+    asmt{Double, Integer, String}
+    op{+ | * | / | + | - | ^}
+    dbl{- | + | digit | .}
+    d_expr{l_char | - | + | digit | .}
+    int{- | + | digit}
+    i_expr{l_char | - | + | digit}
+    str_literal{"}
+    str{<space> | l_char | u_char | digit}
+    s_expr{" | l_char | concat | charAt}
+
+Follow:
+    program{epsilon}
+    stmt_list{$$}
+    start_paren{l_char | " | concat | charAt | - | + | digit | .}
+    end_paren{; | , | )}
+    end_stmt{print< | Double | Integer | String | l_char | " | concat | charAt | - | + | digit | . | ; | $$}
+    char{<space> | l_char | u_char | digit | = | ; | , | ) | + | * | / | + | - | ^}
+    l_char{<space> | l_char | u_char | digit | = | ; | , | ) | + | * | / | + | - | ^}
+    u_char{<space> | l_char | u_char | digit | = | ; | , | ) | + | * | / | + | - | ^}
+    digit{<space> | l_char | u_char | digit | = | ; | , | ) | + | * | / | + | - | ^ | .}
+    sign{digit}
+    id{= | ; | , | ) | + | * | / | + | - | ^}
+    stmt{print< | Double | Integer | String | l_char | " | concat | charAt | - | + | digit | . | $$}
+    expr{;}
+    print{print< | Double | Integer | String | l_char | " | concat | charAt | - | + | digit | . | $$}
+    asmt{print< | Double | Integer | String | l_char | " | concat | charAt | - | + | digit | . | $$}
+    op{l_char | - | + | digit | .}
+    dbl{; | + | * | / | + | - | ^}
+    d_expr{; | + | * | / | + | - | ^}
+    int{; | + | * | / | + | - | ^}
+    i_expr{; | + | * | / | + | - | ^}
+    str_literal{; | , | )}
+    str{"}
+    s_expr{; | , | )}
