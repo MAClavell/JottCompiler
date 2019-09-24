@@ -72,3 +72,10 @@ Follow:
     str_literal{; | , | )}
     str{"}
     s_expr{; | , | )}
+
+Predict:
+    program{$$ | print< | Double | Integer | String | l_char | " | concat | charAt | - | + | digit | .}
+    stmt_list{print< | Double | Integer | String | l_char | " | concat | charAt | - | + | digit | . | $$}
+    start_paren{(}
+    end_paren{)}
+    end_stmt{;}
