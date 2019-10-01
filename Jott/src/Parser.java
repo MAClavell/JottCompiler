@@ -38,64 +38,64 @@ public class Parser {
             node.addTreeNode(new State(State.stateType.EPSILON));
         }
     }
-    public void end_paren(TreeNode node) {
+    private static void end_paren(TreeNode node) {
 
     }
-    public void end_stmt(TreeNode node) {
+    private static void end_stmt(TreeNode node) {
 
     }
-    public void character(TreeNode node) {
+    private static void character(TreeNode node) {
 
     }
-    public void l_char(TreeNode node) {
+    private static void l_char(TreeNode node) {
 
     }
-    public void u_char(TreeNode node) {
+    private static void u_char(TreeNode node) {
 
     }
-    public void digit(TreeNode node) {
+    private static void digit(TreeNode node) {
 
     }
-    public void sign(TreeNode node) {
+    private static void sign(TreeNode node) {
 
     }
-    public void id(TreeNode node) {
+    private static void id(TreeNode node) {
 
     }
     private static void stmt(TreeNode node) {
 
     }
-    public void expr(TreeNode node) {
+    private static void expr(TreeNode node) {
 
     }
-    public void print(TreeNode node) {
+    private static void print(TreeNode node) {
 
     }
-    public void asmt(TreeNode node) {
+    private static void asmt(TreeNode node) {
 
     }
-    public void op(TreeNode node) {
+    private static void op(TreeNode node) {
 
     }
-    public void dbl(TreeNode node) {
+    private static void dbl(TreeNode node) {
 
     }
-    public void d_expr(TreeNode node) {
+    private static void d_expr(TreeNode node) {
 
     }
-    public void integer(TreeNode node) {
+    private static void integer(TreeNode node) {
 
     }
-    public void i_expr(TreeNode node) {
+    private static void i_expr(TreeNode node) {
 
     }
-    public void str_literal(TreeNode node) {
+    private static void str_literal(TreeNode node) {
 
     }
-    public void str(TreeNode node) {
+    private static void str(TreeNode node) {
 
     }
-    public void s_expr(TreeNode node) {
+    private static void s_expr(TreeNode node) {
 
     }
 
