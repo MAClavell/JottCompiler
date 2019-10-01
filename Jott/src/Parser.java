@@ -1,6 +1,9 @@
 import java.util.ArrayList;
 
 public class Parser {
+
+    static int tokenIndex=0;
+
     /**
      * The main parsing method called to parse the tokenStream into a parse tree
      * @param tokenStream the token stream to parse
@@ -19,9 +22,12 @@ public class Parser {
        node.addTreeNode((new State((State.stateType.END_PROG))));
     }
 
-    private static void stmt_list(TreeNode node){
+    private static void stmt_list(TreeNode node, ArrayList<Token> token){
         stmt(node.addTreeNode(new State((State.stateType.STMT))));
         stmt_list(node.addTreeNode(new State(State.stateType.STMT_LIST)));
+        switch(token.get(tokenIndex).getTokenType()){
+
+        }
     }
     public void end_paren(TreeNode node) {
 
