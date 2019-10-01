@@ -108,6 +108,7 @@ public class Scanner {
             }
         }
 
+        tokens.add(new Token("$$", TokenType.EoF, lineNum, columnStart, columnNum));
         return tokens;
     }
 
