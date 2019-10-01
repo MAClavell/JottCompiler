@@ -7,6 +7,11 @@ public class Parser {
     // The list of tokens
     static ArrayList<Token> tokenStream;
 
+    // Strings representing the different tokens for Strings
+    public final static String PRINT="print";
+
+    // TODO exit out if there is a parse error
+
     /**
      * The main parsing method called to parse the tokenStream into a parse tree
      * @param tokens the token stream to parse
@@ -72,7 +77,33 @@ public class Parser {
 
     }
     private static void stmt(TreeNode node) {
+        // If it is valid
+        if(tokenStream.get(tokenIndex).getTokenType()==TokenType.ID) {
 
+            // The print statement
+            if (tokenStream.get(tokenIndex).getTokenText().equals(PRINT)) {
+
+            }
+
+            // The assignment stmt
+            //else if (tokenStream.get(tokenIndex).getTokenText().equals()) {
+
+            //}
+
+            //else if(){
+
+            //}
+
+            // Error
+            else{
+
+            }
+        }
+
+        // Error
+        else{
+
+        }
     }
     private static void expr(TreeNode node) {
 
