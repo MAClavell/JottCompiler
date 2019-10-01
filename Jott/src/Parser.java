@@ -2,7 +2,9 @@ import java.util.ArrayList;
 
 public class Parser {
 
+    // The token index
     static int tokenIndex=0;
+    // The list of tokens
     static ArrayList<Token> tokenStream;
 
     /**
@@ -25,10 +27,15 @@ public class Parser {
     }
 
     private static void stmt_list(TreeNode node){
-        stmt(node.addTreeNode(new State((State.stateType.STMT))));
-        stmt_list(node.addTreeNode(new State(State.stateType.STMT_LIST)));
-        switch(tokenStream.get(tokenIndex).getTokenType()){
+        if(tokenStream.get(tokenIndex)!=) {
+            // Add a statement to the tree and branch off to parse this left hand side
+            stmt(node.addTreeNode(new State((State.stateType.STMT))));
 
+            // Add a statement to the tree and branch off to parse this right hand side
+            stmt_list(node.addTreeNode(new State(State.stateType.STMT_LIST)));
+        }
+        else{
+            node.addTreeNode(new State(State.stateType.EPSILON));
         }
     }
     public void end_paren(TreeNode node) {
