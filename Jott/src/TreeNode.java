@@ -1,3 +1,5 @@
+import com.sun.source.tree.Tree;
+
 import java.util.ArrayList;
 
 public class TreeNode {
@@ -29,8 +31,11 @@ public class TreeNode {
      * Adds a new tree node to the tree
      * @param state the state of the node in the tree
      */
-    public void addTreeNode(State state){
-        branches.add(new TreeNode(state));
+    public TreeNode addTreeNode(State state)
+    {
+        TreeNode node = new TreeNode(state);
+        branches.add(node);
+        return node;
     }
 
     /**

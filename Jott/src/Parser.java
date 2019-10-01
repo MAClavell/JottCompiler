@@ -8,20 +8,20 @@ public class Parser {
      */
     public static TreeNode parse(ArrayList<Token> tokenStream){
         State state = new State(State.stateType.PROGRAM);
-        TreeNode root= new TreeNode(state);
+        TreeNode root = new TreeNode(state);
+        program(root);
         return root;
     }
 
     ///Predict Functions
-    public void program(TreeNode node){
-       // if(State.stateType.PRINT.equals())
-       // {
-       //     print();
-       // }
+    private static void program(TreeNode node){
+       stmt_list(node.addTreeNode((new State((State.stateType.STMT_LIST)))));
+       node.addTreeNode((new State((State.stateType.END_PROG))));
     }
-    public void stmt_list(TreeNode node){
-        State state = new State(State.stateType.STMT_LIST);
-        node.addTreeNode(state);
+
+    private static void stmt_list(TreeNode node){
+        stmt(node.addTreeNode(new State((State.stateType.STMT))));
+        stmt_list(node.addTreeNode(new State(State.stateType.STMT_LIST)));
     }
     public void end_paren(TreeNode node) {
 
@@ -47,7 +47,7 @@ public class Parser {
     public void id(TreeNode node) {
 
     }
-    public void stmt(TreeNode node) {
+    private static void stmt(TreeNode node) {
 
     }
     public void expr(TreeNode node) {
