@@ -3,13 +3,15 @@ import java.util.ArrayList;
 public class Parser {
 
     static int tokenIndex=0;
+    static ArrayList<Token> tokenStream;
 
     /**
      * The main parsing method called to parse the tokenStream into a parse tree
-     * @param tokenStream the token stream to parse
+     * @param tokens the token stream to parse
      * @return the parse tree
      */
-    public static TreeNode parse(ArrayList<Token> tokenStream){
+    public static TreeNode parse(ArrayList<Token> tokens){
+        tokenStream=tokens;
         State state = new State(State.stateType.PROGRAM);
         TreeNode root = new TreeNode(state);
         program(root);
@@ -22,10 +24,10 @@ public class Parser {
        node.addTreeNode((new State((State.stateType.END_PROG))));
     }
 
-    private static void stmt_list(TreeNode node, ArrayList<Token> token){
+    private static void stmt_list(TreeNode node){
         stmt(node.addTreeNode(new State((State.stateType.STMT))));
         stmt_list(node.addTreeNode(new State(State.stateType.STMT_LIST)));
-        switch(token.get(tokenIndex).getTokenType()){
+        switch(tokenStream.get(tokenIndex).getTokenType()){
 
         }
     }
