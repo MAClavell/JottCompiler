@@ -27,13 +27,17 @@ public class Parser {
     }
 
     private static void stmt_list(TreeNode node){
-        if(tokenStream.get(tokenIndex)!=) {
+
+        // Checks if the EoF is next. If not, add stmt and stmt_list
+        if(tokenStream.get(tokenIndex).getTokenType()!=TokenType.EoF) {
             // Add a statement to the tree and branch off to parse this left hand side
             stmt(node.addTreeNode(new State((State.stateType.STMT))));
 
             // Add a statement to the tree and branch off to parse this right hand side
             stmt_list(node.addTreeNode(new State(State.stateType.STMT_LIST)));
         }
+
+        // Adds an epsilon otherwise
         else{
             node.addTreeNode(new State(State.stateType.EPSILON));
         }
