@@ -26,6 +26,11 @@ public class Parser {
        node.addTreeNode((new State((State.stateType.END_PROG))));
     }
 
+
+    /**
+     * Deals with the parsing of a stmt list into either a stmt and stmt list or an epsilon
+     * @param node the node to parse
+     */
     private static void stmt_list(TreeNode node){
 
         // Checks if the EoF is next. If not, add stmt and stmt_list
