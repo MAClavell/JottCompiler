@@ -52,29 +52,145 @@ public class Parser {
             node.addTreeNode(new State(State.stateType.EPSILON));
         }
     }
+    private static void start_paren(TreeNode node) {
+        if(tokenStream.get(tokenIndex).getTokenType()==TokenType.StartParen) {
+            node.addTreeNode(new State((State.stateType.START_PAREN)));
+        }
+        else {
+            node.addTreeNode(new State(State.stateType.EPSILON));
+        }
+    }
     private static void end_paren(TreeNode node) {
-
+        if(tokenStream.get(tokenIndex).getTokenType()==TokenType.EndParen) {
+            node.addTreeNode(new State((State.stateType.END_PAREN)));
+        }
+        else {
+            node.addTreeNode(new State(State.stateType.EPSILON));
+        }
     }
     private static void end_stmt(TreeNode node) {
-
+        if(tokenStream.get(tokenIndex).getTokenType()==TokenType.EndStmt) {
+            node.addTreeNode(new State((State.stateType.END_STATEMENT)));
+        }
+        else {
+            node.addTreeNode(new State(State.stateType.EPSILON));
+        }
     }
+    ///???
     private static void character(TreeNode node) {
+        if(tokenStream.get(tokenIndex).getTokenType()==TokenType.ID) {
+            l_char(node.addTreeNode(new State((State.stateType.L_CHAR))));
+        }
+        else if(tokenStream.get(tokenIndex).getTokenType()==TokenType.Integer||tokenStream.get(tokenIndex).getTokenType()==TokenType.Double) {
+            digit(node.addTreeNode(new State((State.stateType.DIGIT))));
+        }
+        else {
+            node.addTreeNode(new State(State.stateType.EPSILON));
+        }
 
     }
     private static void l_char(TreeNode node) {
+        if (tokenStream.get(tokenIndex).getTokenText().equals('a') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('b') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('c') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('d') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('e') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('f') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('g') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('h') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('i') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('j') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('k') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('l') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('m') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('n') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('o') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('p') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('q') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('r') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('s') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('t') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('u') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('v') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('w') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('x') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('y') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('z')) {
+            node.addTreeNode(new State(State.stateType.L_CHAR));
+        }
+        else {
+            node.addTreeNode(new State(State.stateType.EPSILON));
+        }
 
     }
     private static void u_char(TreeNode node) {
-
+        if (tokenStream.get(tokenIndex).getTokenText().equals('A') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('B') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('C') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('D') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('E') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('F') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('G') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('H') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('I') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('J') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('K') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('L') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('M') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('N') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('O') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('P') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('Q') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('R') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('S') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('T') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('U') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('V') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('W') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('X') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('Y') ||
+                tokenStream.get(tokenIndex).getTokenText().equals('Z')) {
+            node.addTreeNode(new State(State.stateType.U_CHAR));
+        }
+        else {
+            node.addTreeNode(new State(State.stateType.EPSILON));
+        }
     }
     private static void digit(TreeNode node) {
+        boolean dFound = false;
+        for(int i = 0; i < 10; i++) {
+            if (tokenStream.get(tokenIndex).getTokenText().equals(""+i)) {
+                node.addTreeNode(new State(State.stateType.DIGIT));
+                dFound = true;
+                i = 10;
+            }
+        }
+        if(!dFound) {
+            node.addTreeNode(new State(State.stateType.EPSILON));
+        }
 
     }
     private static void sign(TreeNode node) {
-
+        if(tokenStream.get(tokenIndex).getTokenType()==TokenType.Minus ||
+                tokenStream.get(tokenIndex).getTokenType()==TokenType.Plus) {
+            node.addTreeNode(new State((State.stateType.SIGN)));
+        }
+        ///???
+        else if(tokenStream.get(tokenIndex).getTokenType()==TokenType.Integer || tokenStream.get(tokenIndex).getTokenType()==TokenType.Double) {
+            digit(node.addTreeNode(new State((State.stateType.DIGIT))));
+        }
+        else{
+            node.addTreeNode(new State(State.stateType.EPSILON));
+        }
     }
     private static void id(TreeNode node) {
-
+        if(tokenStream.get(tokenIndex).getTokenType()==TokenType.ID) {
+            ///???
+            l_char(node.addTreeNode(new State((State.stateType.L_CHAR))));
+        }
+        else{
+            node.addTreeNode(new State(State.stateType.EPSILON));
+        }
     }
     private static void stmt(TreeNode node) {
         // If it is valid
@@ -105,8 +221,35 @@ public class Parser {
 
         }
     }
+    ///???
     private static void expr(TreeNode node) {
-
+        if(tokenStream.get(tokenIndex).getTokenType()==TokenType.ID){
+            l_char(node.addTreeNode(new State((State.stateType.L_CHAR))));
+        }
+        else if(tokenStream.get(tokenIndex).getTokenText().equals('"')){
+            node.addTreeNode(new State(State.stateType.EXPR));
+        }
+        else if(tokenStream.get(tokenIndex).getTokenText().equals("concat")){
+            node.addTreeNode(new State(State.stateType.EXPR));
+        }
+        else if(tokenStream.get(tokenIndex).getTokenText().equals("charAt")){
+            node.addTreeNode(new State(State.stateType.EXPR));
+        }
+        else if(tokenStream.get(tokenIndex).getTokenType()==TokenType.Minus){
+            node.addTreeNode(new State(State.stateType.EXPR));
+        }
+        else if(tokenStream.get(tokenIndex).getTokenType()==TokenType.Plus){
+            node.addTreeNode(new State(State.stateType.EXPR));
+        }
+        else if(tokenStream.get(tokenIndex).getTokenType()==TokenType.Integer || tokenStream.get(tokenIndex).getTokenType()==TokenType.Double){
+            node.addTreeNode(new State(State.stateType.EXPR));
+        }
+        else if(tokenStream.get(tokenIndex).getTokenText().equals('.')){
+            node.addTreeNode(new State(State.stateType.EXPR));
+        }
+        else {
+            node.addTreeNode(new State(State.stateType.EPSILON));
+        }
     }
     private static void print(TreeNode node) {
 
