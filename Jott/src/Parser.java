@@ -192,33 +192,47 @@ public class Parser {
             node.addTreeNode(new State(State.stateType.EPSILON));
         }
     }
+
+    /**
+     *  Deals with parsing a stmt into its various parts
+     * @param node the node to branch off of
+     */
     private static void stmt(TreeNode node) {
         // If it is valid
         if(tokenStream.get(tokenIndex).getTokenType()==TokenType.ID) {
 
+            String tokenText=tokenStream.get(tokenIndex).getTokenText();
+
             // The print statement
             if (tokenStream.get(tokenIndex).getTokenText().equals(PRINT)) {
-
+                print(node.addTreeNode(new State(State.stateType.PRINT)));
             }
 
             // The assignment stmt
-            //else if (tokenStream.get(tokenIndex).getTokenText().equals()) {
+            else if (tokenStream.get(tokenIndex+1).getTokenType()==TokenType.Assign) {
+                asmt(node.addTreeNode(new State(State.stateType.ASMT)));
+            }
 
-            //}
-
-            //else if(){
-
-            //}
+            // The expression statement
+            else if(((int)(tokenText.charAt(0))>= 97 && (int)(tokenText.charAt(0)) <= 122) ||
+                    ((int)(tokenText.charAt(0))>= 48 && (int)(tokenText.charAt(0)) <= 57) ||
+                    tokenText.charAt(0)=='"' || tokenText.equals("concat")|| tokenText.equals("charAt") ||
+                    tokenText.equals("-") || tokenText.equals("+") || tokenText.equals(".")){
+                expr(node.addTreeNode(new State(State.stateType.EXPR)));
+                end_stmt(node.addTreeNode(new State(State.stateType.END_STATEMENT)));
+            }
 
             // Error
             else{
-
+                System.err.println("Parse error");
+                System.exit(1);
             }
         }
 
         // Error
         else{
-
+            System.err.println("Parse error");
+            System.exit(1);
         }
     }
     ///???
