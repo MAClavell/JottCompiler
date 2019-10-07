@@ -39,6 +39,26 @@ public class TreeNode {
     }
 
     /**
+     * Adds an existing tree node to the tree
+     * @param node the existing treenode to add
+     */
+    public TreeNode addTreeNode(TreeNode node)
+    {
+        branches.add(node);
+        return node;
+    }
+
+    /**
+     * Adds an existing tree node to the front of the tree
+     * @param node the existing treenode to add
+     */
+    public TreeNode addTreeNodeToFront(TreeNode node)
+    {
+        branches.add(0, node);
+        return node;
+    }
+
+    /**
      * Gets the node's state in the tree
      * @return the node's state in the tree
      */
@@ -52,5 +72,21 @@ public class TreeNode {
      */
     public Token getToken(){
         return state.getToken();
+    }
+
+    private static int indentation = 0; //TODO: REMOVE (for testing only)
+    @Override
+    public String toString() {
+        String output = "";
+        output += state.getState() + ", \n";
+        indentation++;
+        for(TreeNode branch : branches)
+        {
+            for(int i = 0; i < indentation; i++)
+                output += "\t";
+            output += branch.toString();
+        }
+        indentation--;
+        return output;
     }
 }

@@ -1,3 +1,5 @@
+import com.sun.source.tree.Tree;
+
 import java.util.ArrayList;
 
 public class Parser {
@@ -55,6 +57,7 @@ public class Parser {
     private static void start_paren(TreeNode node) {
         if(tokenStream.get(tokenIndex).getTokenType()==TokenType.StartParen) {
             node.addTreeNode(new State((State.stateType.START_PAREN)));
+            tokenIndex++;
         }
         else {
             node.addTreeNode(new State(State.stateType.EPSILON));
@@ -63,6 +66,7 @@ public class Parser {
     private static void end_paren(TreeNode node) {
         if(tokenStream.get(tokenIndex).getTokenType()==TokenType.EndParen) {
             node.addTreeNode(new State((State.stateType.END_PAREN)));
+            tokenIndex++;
         }
         else {
             node.addTreeNode(new State(State.stateType.EPSILON));
@@ -71,122 +75,16 @@ public class Parser {
     private static void end_stmt(TreeNode node) {
         if(tokenStream.get(tokenIndex).getTokenType()==TokenType.EndStmt) {
             node.addTreeNode(new State((State.stateType.END_STATEMENT)));
+            tokenIndex++;
         }
         else {
             node.addTreeNode(new State(State.stateType.EPSILON));
         }
-    }
-    ///???
-    private static void character(TreeNode node) {
-        if(tokenStream.get(tokenIndex).getTokenType()==TokenType.ID) {
-            l_char(node.addTreeNode(new State((State.stateType.L_CHAR))));
-        }
-        else if(tokenStream.get(tokenIndex).getTokenType()==TokenType.Integer||tokenStream.get(tokenIndex).getTokenType()==TokenType.Double) {
-            digit(node.addTreeNode(new State((State.stateType.DIGIT))));
-        }
-        else {
-            node.addTreeNode(new State(State.stateType.EPSILON));
-        }
-
-    }
-    private static void l_char(TreeNode node) {
-        if (tokenStream.get(tokenIndex).getTokenText().equals('a') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('b') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('c') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('d') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('e') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('f') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('g') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('h') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('i') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('j') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('k') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('l') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('m') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('n') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('o') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('p') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('q') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('r') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('s') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('t') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('u') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('v') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('w') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('x') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('y') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('z')) {
-            node.addTreeNode(new State(State.stateType.L_CHAR));
-        }
-        else {
-            node.addTreeNode(new State(State.stateType.EPSILON));
-        }
-
-    }
-    private static void u_char(TreeNode node) {
-        if (tokenStream.get(tokenIndex).getTokenText().equals('A') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('B') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('C') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('D') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('E') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('F') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('G') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('H') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('I') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('J') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('K') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('L') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('M') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('N') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('O') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('P') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('Q') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('R') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('S') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('T') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('U') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('V') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('W') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('X') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('Y') ||
-                tokenStream.get(tokenIndex).getTokenText().equals('Z')) {
-            node.addTreeNode(new State(State.stateType.U_CHAR));
-        }
-        else {
-            node.addTreeNode(new State(State.stateType.EPSILON));
-        }
-    }
-    private static void digit(TreeNode node) {
-        boolean dFound = false;
-        for(int i = 0; i < 10; i++) {
-            if (tokenStream.get(tokenIndex).getTokenText().equals(""+i)) {
-                node.addTreeNode(new State(State.stateType.DIGIT));
-                dFound = true;
-                i = 10;
-            }
-        }
-        if(!dFound) {
-            node.addTreeNode(new State(State.stateType.EPSILON));
-        }
-
     }
     private static void sign(TreeNode node) {
         if(tokenStream.get(tokenIndex).getTokenType()==TokenType.Minus ||
                 tokenStream.get(tokenIndex).getTokenType()==TokenType.Plus) {
             node.addTreeNode(new State((State.stateType.SIGN)));
-        }
-        ///???
-        else if(tokenStream.get(tokenIndex).getTokenType()==TokenType.Integer || tokenStream.get(tokenIndex).getTokenType()==TokenType.Double) {
-            digit(node.addTreeNode(new State((State.stateType.DIGIT))));
-        }
-        else{
-            node.addTreeNode(new State(State.stateType.EPSILON));
-        }
-    }
-    private static void id(TreeNode node) {
-        if(tokenStream.get(tokenIndex).getTokenType()==TokenType.ID) {
-            ///???
-            l_char(node.addTreeNode(new State((State.stateType.L_CHAR))));
         }
         else{
             node.addTreeNode(new State(State.stateType.EPSILON));
@@ -214,12 +112,12 @@ public class Parser {
             }
 
             // The expression statement
-            else if(((int)(tokenText.charAt(0))>= 97 && (int)(tokenText.charAt(0)) <= 122) ||
-                    ((int)(tokenText.charAt(0))>= 48 && (int)(tokenText.charAt(0)) <= 57) ||
+            else if(Character.isLowerCase(tokenText.charAt(0)) ||
+                    Character.isDigit(tokenText.charAt(0)) ||
                     tokenText.charAt(0)=='"' || tokenText.equals("concat")|| tokenText.equals("charAt") ||
                     tokenText.equals("-") || tokenText.equals("+") || tokenText.equals(".")){
                 expr(node.addTreeNode(new State(State.stateType.EXPR)));
-                end_stmt(node.addTreeNode(new State(State.stateType.END_STATEMENT)));
+                end_stmt(node);
             }
 
             // Error
@@ -235,35 +133,8 @@ public class Parser {
             System.exit(1);
         }
     }
-    ///???
     private static void expr(TreeNode node) {
-        if(tokenStream.get(tokenIndex).getTokenType()==TokenType.ID){
-            l_char(node.addTreeNode(new State((State.stateType.L_CHAR))));
-        }
-        else if(tokenStream.get(tokenIndex).getTokenText().equals('"')){
-            node.addTreeNode(new State(State.stateType.EXPR));
-        }
-        else if(tokenStream.get(tokenIndex).getTokenText().equals("concat")){
-            node.addTreeNode(new State(State.stateType.EXPR));
-        }
-        else if(tokenStream.get(tokenIndex).getTokenText().equals("charAt")){
-            node.addTreeNode(new State(State.stateType.EXPR));
-        }
-        else if(tokenStream.get(tokenIndex).getTokenType()==TokenType.Minus){
-            node.addTreeNode(new State(State.stateType.EXPR));
-        }
-        else if(tokenStream.get(tokenIndex).getTokenType()==TokenType.Plus){
-            node.addTreeNode(new State(State.stateType.EXPR));
-        }
-        else if(tokenStream.get(tokenIndex).getTokenType()==TokenType.Integer || tokenStream.get(tokenIndex).getTokenType()==TokenType.Double){
-            node.addTreeNode(new State(State.stateType.EXPR));
-        }
-        else if(tokenStream.get(tokenIndex).getTokenText().equals('.')){
-            node.addTreeNode(new State(State.stateType.EXPR));
-        }
-        else {
-            node.addTreeNode(new State(State.stateType.EPSILON));
-        }
+        i_expr(node, false);
     }
     private static void print(TreeNode node) {
 
@@ -280,12 +151,128 @@ public class Parser {
     private static void d_expr(TreeNode node) {
 
     }
-    private static void integer(TreeNode node) {
+    private static boolean integer(TreeNode node) {
+        TreeNode intNode = new TreeNode(new State(State.stateType.INT));
+        boolean foundSign = false;
+
+        if(isTokenSign(tokenStream.get(tokenIndex)))
+        {
+            intNode.addTreeNode(new State(State.stateType.SIGN));
+            tokenIndex++;
+            foundSign = true;
+        }
+        if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.Integer))
+        {
+            intNode.addTreeNode(new State(State.stateType.DIGIT, tokenStream.get(tokenIndex)));
+            tokenIndex++;
+            node.addTreeNode(intNode);
+            return true;
+        }
+
+        if(foundSign)
+            tokenIndex--;
+        return false;
+    }
+    private static boolean isTokenOp(Token curr)
+    {
+        return(curr.getTokenType()==TokenType.Minus||
+                curr.getTokenType()==TokenType.Plus||
+                curr.getTokenType()==TokenType.Mult||
+                curr.getTokenType()==TokenType.Divide||
+                curr.getTokenType()==TokenType.Power);
 
     }
-    private static void i_expr(TreeNode node) {
+    private static boolean isTokenSign(Token curr)
+    {
+        return(curr.getTokenType()==TokenType.Minus||
+                curr.getTokenType()==TokenType.Plus);
 
     }
+
+    private static class NestedExprResult{
+        public boolean succeeded;
+        public TreeNode eNode;
+
+        NestedExprResult(boolean succeeded, TreeNode eNode)
+        {
+            this.succeeded = succeeded;
+            this.eNode = eNode;
+        }
+    };
+    private static NestedExprResult i_expr(TreeNode node, boolean isNestedExpr) {
+        TreeNode parentExprNode = new TreeNode(new State (State.stateType.I_EXPR));
+
+        if(isNestedExpr)
+            tokenIndex--;
+
+        if(isNestedExpr || tokenStream.get(tokenIndex).getTokenType().equals(TokenType.ID)){
+            if(isTokenOp(tokenStream.get(tokenIndex+1))){
+                if(!isNestedExpr){
+                    TreeNode idNode = parentExprNode.addTreeNode(new State(State.stateType.I_EXPR));
+                    idNode.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex)));
+                }
+                tokenIndex++;
+                return i_exprThirdComponent(node, parentExprNode);
+            }
+            else {
+                parentExprNode.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex)));
+                node.addTreeNode(parentExprNode);
+                tokenIndex++;
+                return new NestedExprResult(true, parentExprNode);
+            }
+        }
+        else if(isNestedExpr || integer(parentExprNode)) { //adds integer to the node if one exists
+            if(isTokenOp(tokenStream.get(tokenIndex))){
+                return i_exprThirdComponent(node, parentExprNode);
+            }
+            else {
+                node.addTreeNode(parentExprNode);
+                return new NestedExprResult(true, parentExprNode);
+            }
+        }
+
+        return new NestedExprResult(false, null);
+    }
+    private static NestedExprResult i_exprThirdComponent(TreeNode node, TreeNode parentExprNode)
+    {
+        parentExprNode.addTreeNode(new State(State.stateType.OP, tokenStream.get(tokenIndex)));
+        tokenIndex++;
+        if(integer(parentExprNode))
+        {
+            if(isTokenOp(tokenStream.get(tokenIndex))){
+                NestedExprResult res = i_expr(node, true);
+                if(res.succeeded) {
+                    res.eNode.addTreeNodeToFront(parentExprNode);
+                    return new NestedExprResult(true, parentExprNode);
+                }
+            }
+            else
+            {
+                node.addTreeNode(parentExprNode);
+                return new NestedExprResult(true, parentExprNode);
+            }
+        }
+        else if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.ID)){
+            TreeNode idNode = parentExprNode.addTreeNode(new State(State.stateType.I_EXPR));
+            idNode.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex)));
+            tokenIndex++;
+
+            if(isTokenOp(tokenStream.get(tokenIndex))){
+                NestedExprResult res = i_expr(node, true);
+                if(res.succeeded) {
+                    res.eNode.addTreeNodeToFront(parentExprNode);
+                    return new NestedExprResult(true, parentExprNode);
+                }
+            }
+            else
+            {
+                node.addTreeNode(parentExprNode);
+                return new NestedExprResult(true, parentExprNode);
+            }
+        }
+        return new NestedExprResult(false, null);
+    }
+
     private static void str_literal(TreeNode node) {
 
     }
