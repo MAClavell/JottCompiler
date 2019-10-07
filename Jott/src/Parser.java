@@ -383,10 +383,24 @@ public class Parser {
 
     }
     private static void str_literal(TreeNode node) {
+        // Gets the starting quote terminal
+        node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
+        tokenIndex++;
 
+        // Adds the string
+        str(node.addTreeNode(new State(State.stateType.STR)));
+
+        // Gets the ending quote terminal
+        node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
+        tokenIndex++;
     }
     private static void str(TreeNode node) {
 
+        //Builds a string using the quote as a terminator
+        while(!tokenStream.get(tokenIndex).equals("\"")){
+            node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
+            tokenIndex++;
+        }
     }
     private static void s_expr(TreeNode node) {
 
