@@ -209,7 +209,7 @@ public class Parser {
             }
 
             // The assignment stmt
-            else if (tokenStream.get(tokenIndex+1).getTokenType()==TokenType.Assign) {
+            else if (tokenStream.get(tokenIndex+2).getTokenType()==TokenType.Assign) {
                 asmt(node.addTreeNode(new State(State.stateType.ASMT)));
             }
 
@@ -224,14 +224,14 @@ public class Parser {
 
             // Error
             else{
-                System.err.println("Parse error");
+                System.err.println("Parse error in stmt");
                 System.exit(1);
             }
         }
 
         // Error
         else{
-            System.err.println("Parse error");
+            System.err.println("Parse error in stmt");
             System.exit(1);
         }
     }
@@ -374,13 +374,39 @@ public class Parser {
 
     }
     private static void d_expr(TreeNode node) {
+        /*if(){
 
-    }
-    private static void integer(TreeNode node) {
+        }
+        else if(){
 
+        }
+        else if(){
+
+        }*/
     }
+    //private static void integer(TreeNode node) {
+
+    //}
+
+    private static Token combineSignedNumber(Token sign, Token number){
+        return new Token(sign.getTokenText()+number.getTokenText(),
+                            number.getTokenType(),
+                            sign.getLineNum(),
+                            sign.getColumnStart(),
+                            number.getColumnEnd());
+    }
+
+    //TODO
     private static void i_expr(TreeNode node) {
+        // Case when it is just the integer left
+        if(tokenStream.get(tokenIndex+1).getTokenType()==TokenType.EndStmt){
 
+        }
+
+
+        else{
+            System.err.println("Parse error in i_expr");
+        }
     }
     private static void str_literal(TreeNode node) {
         // Gets the starting quote terminal

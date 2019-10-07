@@ -24,5 +24,6 @@ public class Jott {
         for (Token t : tokens) {
             System.out.println(t);
         }
+        //Parser.parse(tokens);
     }
 }
