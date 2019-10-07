@@ -396,14 +396,84 @@ public class Parser {
     }
     private static void str(TreeNode node) {
 
-        //Builds a string using the quote as a terminator
-        while(!tokenStream.get(tokenIndex).equals("\"")){
+        // Builds a string using the quote as a terminator
+        while(!tokenStream.get(tokenIndex).getTokenText().equals("\"")){
             node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
             tokenIndex++;
         }
     }
+
     private static void s_expr(TreeNode node) {
 
+        String tokenText=tokenStream.get(tokenIndex).getTokenText();
+
+        // s_expr -> <str_literal>
+        if(tokenText.equals("\"")){
+            str_literal(node.addTreeNode(new State(State.stateType.STR_LITERAL)));
+        }
+
+        // s_expr -> concat <start_paren > <s_expr >, <s_expr > <end_paren>
+        else if(tokenText.equals("concat")){
+
+            // Adds the concat terminal
+            node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
+            tokenIndex++;
+
+            // The start_paren terminal
+            node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex)));
+            tokenIndex++;
+
+            // Adds the first s_expr
+            s_expr(node.addTreeNode(new State(State.stateType.S_EXPR)));
+
+            // Adds the comma terminal
+            node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
+            tokenIndex++;
+
+            // Adds the second s_expr
+            s_expr(node.addTreeNode(new State(State.stateType.S_EXPR)));
+
+            node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex)));
+            tokenIndex++;
+        }
+
+        // s_expr -> charAt <start_paren > <s_expr >, <i_expr > <end_paren>
+        else if(tokenText.equals("charAt")){
+
+            // The charAt terminal
+            node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
+            tokenIndex++;
+
+            // Adds the start paren
+            node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex)));
+            tokenIndex++;
+
+            // Adds the s_expr
+            s_expr(node.addTreeNode(new State(State.stateType.S_EXPR)));
+
+            // Adds the comma terminal
+            node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
+            tokenIndex++;
+
+            // Adds the i_expr
+            i_expr(node.addTreeNode(new State(State.stateType.I_EXPR)));
+
+            // Adds the end paren
+            node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex)));
+            tokenIndex++;
+        }
+
+        // s_expr-> <id>
+        else if(tokenStream.get(tokenIndex).getTokenType()==TokenType.ID){
+            node.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex)));
+            tokenIndex++;
+        }
+
+        // Error
+        else{
+            System.err.println("Error in parsing");
+            System.exit(1);
+        }
     }
 
 }
