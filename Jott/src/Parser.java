@@ -266,14 +266,106 @@ public class Parser {
         }
     }
     private static void print(TreeNode node) {
-        // TODO I dont know if i need a label for the actual print literal
-        node.addTreeNode(new State(State.stateType.START_PAREN));
+        // Adds the print terminal
+        node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
+        tokenIndex++;
+
+        // Adds the start parenthasis
+        start_paren(node.addTreeNode(new State(State.stateType.START_PAREN)));
+
+        // Adds the expression to print
         expr(node.addTreeNode(new State(State.stateType.EXPR)));
-        node.addTreeNode(new State(State.stateType.END_PAREN));
-        node.addTreeNode(new State(State.stateType.END_STATEMENT));
+
+        // Adds the end parenthasis
+        end_paren(node.addTreeNode(new State(State.stateType.END_PAREN)));
+
+        // Adds the semicolon
+        end_stmt(node.addTreeNode(new State(State.stateType.END_STATEMENT)));
     }
+
+    /**
+     * Parses the assignment statment
+     * @param node the node to build off from
+     */
+
     private static void asmt(TreeNode node) {
 
+        String tokenText=tokenStream.get(tokenIndex).getTokenText();
+
+        // asmt_stmt -> Double  <id > = <d_expr ><end_statement>
+        if(tokenText.equals("Double")){
+
+            // Adds a terminal "Double" with the corresponding token
+            node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
+            tokenIndex++;
+
+            // Adds the id
+            node.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex)));
+            tokenIndex++;
+
+            // Adds the = terminal
+            node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
+            tokenIndex++;
+
+            // Adds the d_expr
+            d_expr(node.addTreeNode(new State(State.stateType.D_EXPR)));
+
+            // Adds the end_statement
+            node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex)));
+            tokenIndex++;
+        }
+
+        // asmt_stmt -> Integer  <id > = <i_expr ><end_statement>
+        else if(tokenText.equals("Integer")){
+
+            // Adds a terminal "Integer" with the corresponding token
+            node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
+            tokenIndex++;
+
+            // Adds the id
+            node.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex)));
+            tokenIndex++;
+
+            // Adds the = terminal
+            node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
+            tokenIndex++;
+
+            // Adds the i_expr
+            i_expr(node.addTreeNode(new State(State.stateType.I_EXPR)));
+
+            // Adds the end_statement
+            node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex)));
+            tokenIndex++;
+        }
+
+        // asmt_stmt -> String  <id > = <s_expr ><end_statement>
+        else if(tokenText.equals("String")){
+
+            // Adds the terminal "String" with the corresponding token
+            node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
+            tokenIndex++;
+
+            // Adds the id
+            node.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex)));
+            tokenIndex++;
+
+            // Adds the = terminal
+            node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
+            tokenIndex++;
+
+            // Adds the s_expr
+            s_expr(node.addTreeNode(new State(State.stateType.S_EXPR)));
+
+            // Adds the end_statement
+            node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex)));
+            tokenIndex++;
+        }
+
+        // An error
+        else{
+            System.err.println("Error in assignment statement");
+            System.exit(1);
+        }
     }
     private static void op(TreeNode node) {
 
