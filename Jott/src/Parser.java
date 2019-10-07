@@ -132,10 +132,7 @@ public class Parser {
         }
     }
     private static void expr(TreeNode node) {
-        if(tokenStream.get(tokenIndex).getTokenType()==TokenType.ID){
-            l_char(node.addTreeNode(new State((State.stateType.L_CHAR))));
-        }
-        else if(tokenStream.get(tokenIndex).getTokenText().equals('"')){
+        if(tokenStream.get(tokenIndex).getTokenText().equals('"')){
             node.addTreeNode(new State(State.stateType.EXPR));
         }
         else if(tokenStream.get(tokenIndex).getTokenText().equals("concat")){
@@ -151,7 +148,6 @@ public class Parser {
             node.addTreeNode(new State(State.stateType.EXPR));
         }
         else if(tokenStream.get(tokenIndex).getTokenType()==TokenType.Integer || tokenStream.get(tokenIndex).getTokenType()==TokenType.Double){
-            node.addTreeNode(new State(State.stateType.EXPR));
         }
         else if(tokenStream.get(tokenIndex).getTokenText().equals('.')){
             node.addTreeNode(new State(State.stateType.EXPR));
@@ -226,7 +222,7 @@ public class Parser {
             tokenIndex++;
 
             // Adds the i_expr
-            i_expr(node.addTreeNode(new State(State.stateType.I_EXPR)));
+            i_expr(node.addTreeNode(new State(State.stateType.I_EXPR)), false);
 
             // Adds the end_statement
             node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex)));
@@ -467,7 +463,7 @@ public class Parser {
             tokenIndex++;
 
             // Adds the i_expr
-            i_expr(node.addTreeNode(new State(State.stateType.I_EXPR)));
+            i_expr(node.addTreeNode(new State(State.stateType.I_EXPR)), false);
 
             // Adds the end paren
             node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex)));
