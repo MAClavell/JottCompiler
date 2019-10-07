@@ -266,7 +266,11 @@ public class Parser {
         }
     }
     private static void print(TreeNode node) {
-
+        // TODO I dont know if i need a label for the actual print literal
+        node.addTreeNode(new State(State.stateType.START_PAREN));
+        expr(node.addTreeNode(new State(State.stateType.EXPR)));
+        node.addTreeNode(new State(State.stateType.END_PAREN));
+        node.addTreeNode(new State(State.stateType.END_STATEMENT));
     }
     private static void asmt(TreeNode node) {
 
