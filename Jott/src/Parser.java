@@ -1,3 +1,5 @@
+import com.sun.source.tree.Tree;
+
 import java.util.ArrayList;
 
 public class Parser {
@@ -48,42 +50,6 @@ public class Parser {
         }
 
         // Adds an epsilon otherwise
-        else{
-            node.addTreeNode(new State(State.stateType.EPSILON));
-        }
-    }
-    private static void start_paren(TreeNode node) {
-        if(tokenStream.get(tokenIndex).getTokenType()==TokenType.StartParen) {
-            node.addTreeNode(new State((State.stateType.START_PAREN)));
-            tokenIndex++;
-        }
-        else {
-            node.addTreeNode(new State(State.stateType.EPSILON));
-        }
-    }
-    private static void end_paren(TreeNode node) {
-        if(tokenStream.get(tokenIndex).getTokenType()==TokenType.EndParen) {
-            node.addTreeNode(new State((State.stateType.END_PAREN)));
-            tokenIndex++;
-        }
-        else {
-            node.addTreeNode(new State(State.stateType.EPSILON));
-        }
-    }
-    private static void end_stmt(TreeNode node) {
-        if(tokenStream.get(tokenIndex).getTokenType()==TokenType.EndStmt) {
-            node.addTreeNode(new State((State.stateType.END_STATEMENT)));
-            tokenIndex++;
-        }
-        else {
-            node.addTreeNode(new State(State.stateType.EPSILON));
-        }
-    }
-    private static void sign(TreeNode node) {
-        if(tokenStream.get(tokenIndex).getTokenType()==TokenType.Minus ||
-                tokenStream.get(tokenIndex).getTokenType()==TokenType.Plus) {
-            node.addTreeNode(new State((State.stateType.SIGN)));
-        }
         else{
             node.addTreeNode(new State(State.stateType.EPSILON));
         }
@@ -178,7 +144,6 @@ public class Parser {
      * Parses the assignment statment
      * @param node the node to build off from
      */
-
     private static void asmt(TreeNode node) {
 
         String tokenText=tokenStream.get(tokenIndex).getTokenText();
@@ -222,7 +187,7 @@ public class Parser {
             tokenIndex++;
 
             // Adds the i_expr
-            i_expr(node.addTreeNode(new State(State.stateType.I_EXPR)), false);
+            i_expr(node, false);
 
             // Adds the end_statement
             node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex)));
@@ -267,6 +232,13 @@ public class Parser {
     private static void d_expr(TreeNode node) {
 
     }
+
+    /**
+     * Check if the current token is an integar (with a sign if it exists)
+     *      and push it to the passed in tree node
+     * @param node Node to push the integer too
+     * @return boolean if an integer was found
+     */
     private static boolean integer(TreeNode node) {
         TreeNode intNode = new TreeNode(new State(State.stateType.INT));
         boolean foundSign = false;
@@ -281,7 +253,7 @@ public class Parser {
         {
             intNode.addTreeNode(new State(State.stateType.DIGIT, tokenStream.get(tokenIndex)));
             tokenIndex++;
-            node.addTreeNode(intNode);
+            node.addTreeNode(intNode); //add to the real node
             return true;
         }
 
@@ -289,104 +261,109 @@ public class Parser {
             tokenIndex--;
         return false;
     }
-    private static boolean isTokenOp(Token curr)
-    {
-        return(curr.getTokenType()==TokenType.Minus||
-                curr.getTokenType()==TokenType.Plus||
-                curr.getTokenType()==TokenType.Mult||
-                curr.getTokenType()==TokenType.Divide||
-                curr.getTokenType()==TokenType.Power);
 
-    }
-    private static boolean isTokenSign(Token curr)
-    {
-        return(curr.getTokenType()==TokenType.Minus||
-                curr.getTokenType()==TokenType.Plus);
-
-    }
-
-    private static class NestedExprResult{
-        public boolean succeeded;
-        public TreeNode eNode;
-
-        NestedExprResult(boolean succeeded, TreeNode eNode)
-        {
-            this.succeeded = succeeded;
-            this.eNode = eNode;
-        }
-    };
-    private static NestedExprResult i_expr(TreeNode node, boolean isNestedExpr) {
+    /**
+     * Evaluate the upcoming tokens in the tokenstream to see if it is an i_expr
+     * This function will add it to the send in tree node if it is
+     * @param node The topmost node to add the finished i_expr to
+     * @param isNestedExpr FALSE by default. Flag to see if we are evaluating a nested i_expr
+     * @return TreeNode finished expression (used for recursion and nested expressions)
+     */
+    private static TreeNode i_expr(TreeNode node, boolean isNestedExpr) {
+        //Local expression node to evaluate into
         TreeNode parentExprNode = new TreeNode(new State (State.stateType.I_EXPR));
 
+        //Go back an index if we are nested
         if(isNestedExpr)
             tokenIndex--;
 
+        //Check first parameter to see if it's an ID (skip over if we are nested)
         if(isNestedExpr || tokenStream.get(tokenIndex).getTokenType().equals(TokenType.ID)){
-            if(isTokenOp(tokenStream.get(tokenIndex+1))){
-                if(!isNestedExpr){
+            //Lookahead to see if there's an operator
+            if(isTokenOp(tokenStream.get(tokenIndex+1))) {
+                //Since this IS a math expression, add the ID as a SEPARATE I_EXPR
+                if(!isNestedExpr) {
                     TreeNode idNode = parentExprNode.addTreeNode(new State(State.stateType.I_EXPR));
                     idNode.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex)));
                 }
                 tokenIndex++;
+
+                //Find the third component of the I_EXPR
                 return i_exprThirdComponent(node, parentExprNode);
             }
+            //Since this is NOT a math expression, add the ID to THIS I_EXPR
             else {
                 parentExprNode.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex)));
-                node.addTreeNode(parentExprNode);
+                node.addTreeNode(parentExprNode); //add to topmost node
                 tokenIndex++;
-                return new NestedExprResult(true, parentExprNode);
-            }
-        }
-        else if(isNestedExpr || integer(parentExprNode)) { //adds integer to the node if one exists
-            if(isTokenOp(tokenStream.get(tokenIndex))){
-                return i_exprThirdComponent(node, parentExprNode);
-            }
-            else {
-                node.addTreeNode(parentExprNode);
-                return new NestedExprResult(true, parentExprNode);
+                return parentExprNode; //hit the REAL end of an I_EXPR
             }
         }
 
-        return new NestedExprResult(false, null);
-    }
-    private static NestedExprResult i_exprThirdComponent(TreeNode node, TreeNode parentExprNode)
-    {
-        parentExprNode.addTreeNode(new State(State.stateType.OP, tokenStream.get(tokenIndex)));
-        tokenIndex++;
-        if(integer(parentExprNode))
-        {
-            if(isTokenOp(tokenStream.get(tokenIndex))){
-                NestedExprResult res = i_expr(node, true);
-                if(res.succeeded) {
-                    res.eNode.addTreeNodeToFront(parentExprNode);
-                    return new NestedExprResult(true, parentExprNode);
-                }
+        //Check first parameter to see if it's an Integer (skip over if we are nested)
+        //Automatically adds integer to the node if one exists
+        else if(isNestedExpr || integer(parentExprNode)) {
+            //See if there's an operator
+            if(isTokenOp(tokenStream.get(tokenIndex))) {
+                //IS a math expression
+                //Find the third component of the I_EXPR
+                return i_exprThirdComponent(node, parentExprNode);
             }
-            else
-            {
-                node.addTreeNode(parentExprNode);
-                return new NestedExprResult(true, parentExprNode);
+            //NOT a math expression
+            else {
+                node.addTreeNode(parentExprNode); //add to topmost node
+                return parentExprNode; //hit the REAL end of an I_EXPR
             }
         }
-        else if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.ID)){
+
+        return null; //fail (should never reach here as we are exiting on errors)
+    }
+
+    /**
+     * Evaluate the third component of an i_expr.
+     * NEVER CALL THIS FUNCTION OUTSIDE OF i_expr()
+     * @param node The topmost node to add the finished i_expr to
+     * @param parentExprNode The current expression node we are evaluating
+     * @return TreeNode finished expression (used for recursion and nested expressions)
+     */
+    private static TreeNode i_exprThirdComponent(TreeNode node, TreeNode parentExprNode)
+    {
+        //Add the operator to the I_EXPR
+        parentExprNode.addTreeNode(new State(State.stateType.OP, tokenStream.get(tokenIndex)));
+        tokenIndex++;
+
+        //Find what the third token is
+        boolean foundInteger = integer(parentExprNode);
+        boolean foundID = foundInteger ? false : tokenStream.get(tokenIndex).getTokenType().equals(TokenType.ID);
+        if(foundID)
+        {
+            //Add ID to the I_EXPR
             TreeNode idNode = parentExprNode.addTreeNode(new State(State.stateType.I_EXPR));
             idNode.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex)));
             tokenIndex++;
+        }
 
-            if(isTokenOp(tokenStream.get(tokenIndex))){
-                NestedExprResult res = i_expr(node, true);
-                if(res.succeeded) {
-                    res.eNode.addTreeNodeToFront(parentExprNode);
-                    return new NestedExprResult(true, parentExprNode);
-                }
-            }
-            else
+        //Check for nested statements or add
+        if(foundInteger || foundID)
+        {
+            //Check if there is ANOTHER operator, meaning we are nested
+            if (isTokenOp(tokenStream.get(tokenIndex)))
             {
-                node.addTreeNode(parentExprNode);
-                return new NestedExprResult(true, parentExprNode);
+                //Create and run nested expression
+                TreeNode res = i_expr(node, true);
+                //Since we nested, we HAVE to add the previous expression to the FRONT of the I_EXPR
+                //This is just how the grammar works
+                res.addTreeNodeToFront(parentExprNode);
+                return parentExprNode;
+            }
+            //Expression is finish, add it and return
+            else {
+                node.addTreeNode(parentExprNode); //add to topmost node
+                return parentExprNode; //hit the REAL end of an I_EXPR
             }
         }
-        return new NestedExprResult(false, null);
+
+        return null; //fail (should never reach here as we are exiting on errors)
     }
 
     private static void str_literal(TreeNode node) {
@@ -463,7 +440,7 @@ public class Parser {
             tokenIndex++;
 
             // Adds the i_expr
-            i_expr(node.addTreeNode(new State(State.stateType.I_EXPR)), false);
+            i_expr(node, false);
 
             // Adds the end paren
             node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex)));
@@ -483,4 +460,60 @@ public class Parser {
         }
     }
 
+    private static void start_paren(TreeNode node) {
+        if(tokenStream.get(tokenIndex).getTokenType()==TokenType.StartParen) {
+            node.addTreeNode(new State((State.stateType.START_PAREN)));
+            tokenIndex++;
+        }
+        else {
+            node.addTreeNode(new State(State.stateType.EPSILON));
+        }
+    }
+    private static void end_paren(TreeNode node) {
+        if(tokenStream.get(tokenIndex).getTokenType()==TokenType.EndParen) {
+            node.addTreeNode(new State((State.stateType.END_PAREN)));
+            tokenIndex++;
+        }
+        else {
+            node.addTreeNode(new State(State.stateType.EPSILON));
+        }
+    }
+    private static void end_stmt(TreeNode node) {
+        if(tokenStream.get(tokenIndex).getTokenType()==TokenType.EndStmt) {
+            node.addTreeNode(new State((State.stateType.END_STATEMENT)));
+            tokenIndex++;
+        }
+        else {
+            node.addTreeNode(new State(State.stateType.EPSILON));
+        }
+    }
+
+
+    //HELPERS -----------------------------------------------------------------
+
+    /**
+     * Check if a token is any of the operators
+     * @param tok Token to check
+     * @return boolean if it is an operator token
+     */
+    private static boolean isTokenOp(Token tok)
+    {
+        return tok.getTokenType()==TokenType.Minus ||
+                tok.getTokenType()==TokenType.Plus ||
+                tok.getTokenType()==TokenType.Mult ||
+                tok.getTokenType()==TokenType.Divide ||
+                tok.getTokenType()==TokenType.Power;
+
+    }
+
+    /**
+     * Check if a token is either of the two signs
+     * @param tok Token to check
+     * @return boolean if it is a sign
+     */
+    private static boolean isTokenSign(Token tok)
+    {
+        return tok.getTokenType()==TokenType.Minus ||
+                tok.getTokenType()==TokenType.Plus;
+    }
 }
