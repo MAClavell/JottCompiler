@@ -226,7 +226,34 @@ public class Parser {
     private static void op(TreeNode node) {
 
     }
-    private static void dbl(TreeNode node) {
+
+    /**
+     * Check if the current token is a double (with a sign if it exists)
+     *      and push it to the passed in tree node
+     * @param node Node to push the double too
+     * @return boolean if an double was found
+     */
+    private static boolean dbl(TreeNode node) {
+        TreeNode dblNode = new TreeNode(new State(State.stateType.DBL));
+        boolean foundSign = false;
+
+        if(isTokenSign(tokenStream.get(tokenIndex)))
+        {
+            dblNode.addTreeNode(new State(State.stateType.SIGN));
+            tokenIndex++;
+            foundSign = true;
+        }
+        if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.Double))
+        {
+            dblNode.addTreeNode(new State(State.stateType.DIGIT, tokenStream.get(tokenIndex)));
+            tokenIndex++;
+            node.addTreeNode(dblNode); //add to the real node
+            return true;
+        }
+
+        if(foundSign)
+            tokenIndex--;
+        return false;
 
     }
     private static void d_expr(TreeNode node) {
