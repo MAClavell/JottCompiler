@@ -97,6 +97,8 @@ public class Parser {
             System.exit(1);
         }
     }
+
+    //TODO fix: id doesn't print nothing is done well
     private static void expr(TreeNode node) {
         if(tokenStream.get(tokenIndex).getTokenText().equals('"')){
             node.addTreeNode(new State(State.stateType.EXPR));
@@ -118,26 +120,34 @@ public class Parser {
         else if(tokenStream.get(tokenIndex).getTokenText().equals('.')){
             node.addTreeNode(new State(State.stateType.EXPR));
         }
+        else if(tokenStream.get(tokenIndex).getTokenType()==TokenType.ID){
+            node.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex)));
+            tokenIndex++;
+        }
         else {
             node.addTreeNode(new State(State.stateType.EPSILON));
         }
     }
+
     private static void print(TreeNode node) {
         // Adds the print terminal
         node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
         tokenIndex++;
 
         // Adds the start parenthasis
-        start_paren(node.addTreeNode(new State(State.stateType.START_PAREN)));
+        node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex)));
+        tokenIndex++;
 
         // Adds the expression to print
         expr(node.addTreeNode(new State(State.stateType.EXPR)));
 
         // Adds the end parenthasis
-        end_paren(node.addTreeNode(new State(State.stateType.END_PAREN)));
+        node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex)));
+        tokenIndex++;
 
         // Adds the semicolon
-        end_stmt(node.addTreeNode(new State(State.stateType.END_STATEMENT)));
+        node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex)));
+        tokenIndex++;
     }
 
     /**
@@ -367,32 +377,25 @@ public class Parser {
     }
 
     private static void str_literal(TreeNode node) {
-        // Gets the starting quote terminal
-        node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
-        tokenIndex++;
-
         // Adds the string
-        str(node.addTreeNode(new State(State.stateType.STR)));
-
-        // Gets the ending quote terminal
-        node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
+        node.addTreeNode(new State(State.stateType.STR, tokenStream.get(tokenIndex)));
         tokenIndex++;
     }
-    private static void str(TreeNode node) {
+    /*private static void str(TreeNode node) {
 
         // Builds a string using the quote as a terminator
         while(!tokenStream.get(tokenIndex).getTokenText().equals("\"")){
             node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
             tokenIndex++;
         }
-    }
+    }*/
 
     private static void s_expr(TreeNode node) {
 
         String tokenText=tokenStream.get(tokenIndex).getTokenText();
 
         // s_expr -> <str_literal>
-        if(tokenText.equals("\"")){
+        if(tokenText.charAt(0)=='"'){
             str_literal(node.addTreeNode(new State(State.stateType.STR_LITERAL)));
         }
 
@@ -516,4 +519,6 @@ public class Parser {
         return tok.getTokenType()==TokenType.Minus ||
                 tok.getTokenType()==TokenType.Plus;
     }
+
+
 }
