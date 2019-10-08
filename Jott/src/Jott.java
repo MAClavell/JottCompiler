@@ -19,13 +19,16 @@ public class Jott {
         String text = FileInput.readFile(args[0]);
         System.out.println(text + '\n');
 
+        //Setup error handler
+        LogError.setupHandler(text.split("\n"), args[0]);
+
         //Create tokens from file
         ArrayList<Token> tokens = Scanner.tokenize(text, args[0]);
         for (Token t : tokens) {
             System.out.println(t);
         }
 
-        TreeNode root = Parser.parse(tokens, text.split("\n"));
+        TreeNode root = Parser.parse(tokens);
         System.out.println(root);
     }
 }
