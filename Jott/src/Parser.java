@@ -147,8 +147,7 @@ public class Parser {
         }
 
         else {
-            System.err.println("Error in expr");
-            System.exit(1);
+            LogError.log(LogError.ErrorType.RUNTIME, "Unknown expression", tokenStream.get(tokenIndex));
         }
     }
 
@@ -182,7 +181,7 @@ public class Parser {
         String tokenText=tokenStream.get(tokenIndex).getTokenText();
 
         // asmt_stmt -> Double  <id > = <d_expr ><end_statement>
-        if(tokenText.equals("Double")){
+        if(tokenText.equals(DOUBLE)){
 
             // Adds a terminal "Double" with the corresponding token
             node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
@@ -252,8 +251,7 @@ public class Parser {
 
         // An error
         else{
-            System.err.println("Error in assignment statement");
-            System.exit(1);
+            LogError.log(LogError.ErrorType.RUNTIME, "Incorrect type for assignment", tokenStream.get(tokenIndex));
         }
     }
 
@@ -384,7 +382,7 @@ public class Parser {
     }
 
     /**
-     * Check if the current token is an integar (with a sign if it exists)
+     * Check if the current token is an integer (with a sign if it exists)
      *      and push it to the passed in tree node
      * @param node Node to push the integer too
      * @return boolean if an integer was found
