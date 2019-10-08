@@ -136,7 +136,7 @@ public class Parser {
 
         // If the first token is a double (in d_expr)
         else if(tokenStream.get(tokenIndex).getTokenType()==TokenType.Double){
-            d_expr(node.addTreeNode(new State(State.stateType.D_EXPR)));
+            d_expr(node.addTreeNode(new State(State.stateType.D_EXPR)), false);
         }
 
         // If the first token is any other id so long as it isn't a print
