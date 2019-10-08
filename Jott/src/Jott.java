@@ -25,7 +25,7 @@ public class Jott {
             System.out.println(t);
         }
 
-        TreeNode root = Parser.parse(tokens);
+        TreeNode root = Parser.parse(tokens, text.split("\n"));
         System.out.println(root);
     }
 }

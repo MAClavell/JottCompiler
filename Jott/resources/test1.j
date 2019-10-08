@@ -1,1 +1,1 @@
-Integer x = 4 + 5;
+Integer x = 4 + -5;

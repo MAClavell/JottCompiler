@@ -8,6 +8,8 @@ public class Parser {
     static int tokenIndex=0;
     // The list of tokens
     static ArrayList<Token> tokenStream;
+    //The text line by line
+    static String[] lines;
 
     // Strings representing the different tokens for Strings
     public final static String PRINT="print";
@@ -24,9 +26,10 @@ public class Parser {
      * @param tokens the token stream to parse
      * @return the parse tree
      */
-    public static TreeNode parse(ArrayList<Token> tokens){
+    public static TreeNode parse(ArrayList<Token> tokens, String[] textSplitIntoLines){
         // Sets the tokens
         tokenStream=tokens;
+        lines = textSplitIntoLines;
 
         // The root node
         State state = new State(State.stateType.PROGRAM);
