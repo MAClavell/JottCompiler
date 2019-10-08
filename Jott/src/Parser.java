@@ -1,6 +1,7 @@
 import com.sun.source.tree.Tree;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Parser {
 
@@ -8,6 +9,10 @@ public class Parser {
     static int tokenIndex=0;
     // The list of tokens
     static ArrayList<Token> tokenStream;
+
+    static HashMap<String, Symbol> symbols;
+    //The text line by line
+    static String[] lines;
 
     // Strings representing the different tokens for Strings
     public final static String PRINT="print";
@@ -137,11 +142,23 @@ public class Parser {
             d_expr(node.addTreeNode(new State(State.stateType.D_EXPR)), false);
         }
 
-        // If the first token is any other id so long as it isn't a print
-        else if(tokenStream.get(tokenIndex).getTokenType()==TokenType.ID &&
-                !tokenStream.get(tokenIndex).getTokenText().equals(PRINT)){
-            node.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex)));
-            tokenIndex++;
+        // If it is an id
+        else if(tokenStream.get(tokenIndex).getTokenType()==TokenType.ID
+                && symbols.containsKey(tokenStream.get(tokenIndex).getTokenText())){
+
+            // If the id is a double
+            if(symbols.get(tokenStream.get(tokenIndex).getTokenText()).getType()== Symbol.variableType.DOUBLE){
+                d_expr(node.addTreeNode(new State(State.stateType.D_EXPR)), false);
+            }
+
+            // If the id is an integer
+            else if(symbols.get(tokenStream.get(tokenIndex).getTokenText()).getType()== Symbol.variableType.INTEGER){
+                i_expr(node.addTreeNode(new State(State.stateType.I_EXPR)), false);
+            }
+
+            else{
+                s_expr(node.addTreeNode(new State(State.stateType.S_EXPR)));
+            }
         }
 
         else {
@@ -187,6 +204,8 @@ public class Parser {
 
             // Adds the id
             node.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex)));
+            symbols.put(tokenStream.get(tokenIndex).getTokenText(),
+                    new Symbol<Double>(Symbol.variableType.DOUBLE, tokenStream.get(tokenIndex).getTokenText()));
             tokenIndex++;
 
             // Adds the = terminal
