@@ -101,15 +101,13 @@ public class Parser {
 
             // Error
             else{
-                System.err.println("Parse error in stmt");
-                System.exit(1);
+                LogError.log(LogError.ErrorType.RUNTIME, "Unknown statement", tokenStream.get(tokenIndex));
             }
         }
 
         // Error
         else{
-            System.err.println("Parse error in stmt");
-            System.exit(1);
+            LogError.log(LogError.ErrorType.RUNTIME, "Invalid statement", tokenStream.get(tokenIndex));
         }
     }
 
@@ -596,8 +594,7 @@ public class Parser {
 
         // Error
         else{
-            System.err.println("Error in parsing");
-            System.exit(1);
+            LogError.log(LogError.ErrorType.RUNTIME, "Unknown string expression", tokenStream.get(tokenIndex));
         }
     }
 
