@@ -223,9 +223,6 @@ public class Parser {
             System.exit(1);
         }
     }
-    private static void op(TreeNode node) {
-
-    }
 
     /**
      * Check if the current token is a double (with a sign if it exists)
