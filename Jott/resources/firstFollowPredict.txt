@@ -66,9 +66,9 @@ Follow:
     asmt{print | Double | Integer | String | l_char | " | concat | charAt | - | + | digit | . | $$}
     op{l_char | - | + | digit | .}
     dbl{; | + | * | / | + | - | ^}
-    d_expr{; | + | * | / | + | - | ^}
+    d_expr{; | ) | + | * | / | + | - | ^ }
     int{; | + | * | / | + | - | ^}
-    i_expr{; | + | * | / | + | - | ^}
+    i_expr{; | ) | + | * | / | + | - | ^}
     str_literal{; | , | )}
     str{"}
     s_expr{; | , | )}

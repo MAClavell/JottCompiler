@@ -11,6 +11,11 @@ public class Parser {
 
     // Strings representing the different tokens for Strings
     public final static String PRINT="print";
+    public final static String CONCAT="concat";
+    public final static String CHARAT="charAt";
+    public final static String DOUBLE="Double";
+    public final static String INTEGER="Integer";
+    public final static String STRING="String";
 
     // TODO exit out if there is a parse error
 
@@ -20,12 +25,19 @@ public class Parser {
      * @return the parse tree
      */
     public static TreeNode parse(ArrayList<Token> tokens){
+        // Sets the tokens
         tokenStream=tokens;
+
+        // The root node
         State state = new State(State.stateType.PROGRAM);
         TreeNode root = new TreeNode(state);
+
+        //Starts the parsing process
         program(root);
         return root;
     }
+
+    // Done
 
     ///Predict Functions
     private static void program(TreeNode node){
@@ -33,6 +45,7 @@ public class Parser {
        node.addTreeNode((new State((State.stateType.END_PROG))));
     }
 
+    // DONE
 
     /**
      * Deals with the parsing of a stmt list into either a stmt and stmt list or an epsilon
@@ -54,6 +67,8 @@ public class Parser {
             node.addTreeNode(new State(State.stateType.EPSILON));
         }
     }
+
+
 
     /**
      *  Deals with parsing a stmt into its various parts
@@ -78,7 +93,7 @@ public class Parser {
             // The expression statement
             else if(Character.isLowerCase(tokenText.charAt(0)) ||
                     Character.isDigit(tokenText.charAt(0)) ||
-                    tokenText.charAt(0)=='"' || tokenText.equals("concat")|| tokenText.equals("charAt") ||
+                    tokenText.charAt(0)=='"' || tokenText.equals(CONCAT)|| tokenText.equals(CHARAT) ||
                     tokenText.equals("-") || tokenText.equals("+") || tokenText.equals(".")){
                 expr(node.addTreeNode(new State(State.stateType.EXPR)));
                 end_stmt(node);
@@ -98,34 +113,42 @@ public class Parser {
         }
     }
 
-    //TODO fix: id doesn't print nothing is done well
     private static void expr(TreeNode node) {
-        if(tokenStream.get(tokenIndex).getTokenText().equals('"')){
-            node.addTreeNode(new State(State.stateType.EXPR));
+        // The expression starting with a str_literal (in s_expr)
+        if(tokenStream.get(tokenIndex).getTokenText().charAt(0)=='"'){
+            s_expr(node.addTreeNode(new State(State.stateType.S_EXPR)));
         }
-        else if(tokenStream.get(tokenIndex).getTokenText().equals("concat")){
-            node.addTreeNode(new State(State.stateType.EXPR));
+
+        // The expression starting with concat (in s_expr)
+        else if(tokenStream.get(tokenIndex).getTokenText().equals(CONCAT)){
+            s_expr(node.addTreeNode(new State(State.stateType.S_EXPR)));
         }
-        else if(tokenStream.get(tokenIndex).getTokenText().equals("charAt")){
-            node.addTreeNode(new State(State.stateType.EXPR));
+
+        // The expression starting with charAt (in s_expr)
+        else if(tokenStream.get(tokenIndex).getTokenText().equals(CHARAT)){
+            s_expr(node.addTreeNode(new State(State.stateType.S_EXPR)));
         }
-        else if(tokenStream.get(tokenIndex).getTokenType()==TokenType.Minus){
-            node.addTreeNode(new State(State.stateType.EXPR));
+
+        // If the first token is an integer (in i_expr)
+        else if(tokenStream.get(tokenIndex).getTokenType()==TokenType.Integer){
+            i_expr(node.addTreeNode(new State(State.stateType.I_EXPR)), false);
         }
-        else if(tokenStream.get(tokenIndex).getTokenType()==TokenType.Plus){
-            node.addTreeNode(new State(State.stateType.EXPR));
+
+        // If the first token is a double (in d_expr)
+        else if(tokenStream.get(tokenIndex).getTokenType()==TokenType.Double){
+            d_expr(node.addTreeNode(new State(State.stateType.D_EXPR)));
         }
-        else if(tokenStream.get(tokenIndex).getTokenType()==TokenType.Integer || tokenStream.get(tokenIndex).getTokenType()==TokenType.Double){
-        }
-        else if(tokenStream.get(tokenIndex).getTokenText().equals('.')){
-            node.addTreeNode(new State(State.stateType.EXPR));
-        }
-        else if(tokenStream.get(tokenIndex).getTokenType()==TokenType.ID){
+
+        // If the first token is any other id so long as it isn't a print
+        else if(tokenStream.get(tokenIndex).getTokenType()==TokenType.ID &&
+                !tokenStream.get(tokenIndex).getTokenText().equals(PRINT)){
             node.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex)));
             tokenIndex++;
         }
+
         else {
-            node.addTreeNode(new State(State.stateType.EPSILON));
+            System.err.println("Error in expr");
+            System.exit(1);
         }
     }
 
@@ -182,7 +205,7 @@ public class Parser {
         }
 
         // asmt_stmt -> Integer  <id > = <i_expr ><end_statement>
-        else if(tokenText.equals("Integer")){
+        else if(tokenText.equals(INTEGER)){
 
             // Adds a terminal "Integer" with the corresponding token
             node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
@@ -205,7 +228,7 @@ public class Parser {
         }
 
         // asmt_stmt -> String  <id > = <s_expr ><end_statement>
-        else if(tokenText.equals("String")){
+        else if(tokenText.equals(STRING)){
 
             // Adds the terminal "String" with the corresponding token
             node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
@@ -400,7 +423,7 @@ public class Parser {
         }
 
         // s_expr -> concat <start_paren > <s_expr >, <s_expr > <end_paren>
-        else if(tokenText.equals("concat")){
+        else if(tokenText.equals(CONCAT)){
 
             // Adds the concat terminal
             node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
@@ -425,7 +448,7 @@ public class Parser {
         }
 
         // s_expr -> charAt <start_paren > <s_expr >, <i_expr > <end_paren>
-        else if(tokenText.equals("charAt")){
+        else if(tokenText.equals(CHARAT)){
 
             // The charAt terminal
             node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
@@ -519,6 +542,4 @@ public class Parser {
         return tok.getTokenType()==TokenType.Minus ||
                 tok.getTokenType()==TokenType.Plus;
     }
-
-
 }
