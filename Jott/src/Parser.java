@@ -164,7 +164,7 @@ public class Parser {
             tokenIndex++;
 
             // Adds the d_expr
-            d_expr(node.addTreeNode(new State(State.stateType.D_EXPR)));
+            d_expr(node.addTreeNode(new State(State.stateType.D_EXPR)), false);
 
             // Adds the end_statement
             node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex)));
@@ -256,8 +256,101 @@ public class Parser {
         return false;
 
     }
-    private static void d_expr(TreeNode node) {
+    private static TreeNode d_expr(TreeNode node, boolean isNestedExpr) {
+        //Local expression node to evaluate into
+        TreeNode parentExprNode = new TreeNode(new State (State.stateType.D_EXPR));
 
+        //Go back an index if we are nested
+        if(isNestedExpr)
+            tokenIndex--;
+
+        //Check first parameter to see if it's an ID (skip over if we are nested)
+        if(isNestedExpr || tokenStream.get(tokenIndex).getTokenType().equals(TokenType.ID)){
+            //Lookahead to see if there's an operator
+            if(isTokenOp(tokenStream.get(tokenIndex+1))) {
+                //Since this IS a math expression, add the ID as a SEPARATE D_EXPR
+                if(!isNestedExpr) {
+                    TreeNode idNode = parentExprNode.addTreeNode(new State(State.stateType.D_EXPR));
+                    idNode.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex)));
+                }
+                tokenIndex++;
+
+                //Find the third component of the D_EXPR
+                return d_exprThirdComponent(node, parentExprNode);
+            }
+            //Since this is NOT a math expression, add the ID to THIS D_EXPR
+            else {
+                parentExprNode.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex)));
+                node.addTreeNode(parentExprNode); //add to topmost node
+                tokenIndex++;
+                return parentExprNode; //hit the REAL end of an D_EXPR
+            }
+        }
+
+        //Check first parameter to see if it's a Double (skip over if we are nested)
+        //Automatically adds integer to the node if one exists
+        else if(isNestedExpr || dbl(parentExprNode)) {
+            //See if there's an operator
+            if(isTokenOp(tokenStream.get(tokenIndex))) {
+                //IS a math expression
+                //Find the third component of the D_EXPR
+                return d_exprThirdComponent(node, parentExprNode);
+            }
+            //NOT a math expression
+            else {
+                node.addTreeNode(parentExprNode); //add to topmost node
+                return parentExprNode; //hit the REAL end of an D_EXPR
+            }
+        }
+
+        return null; //fail (should never reach here as we are exiting on errors)
+    }
+
+    /**
+     * Evaluate the third component of an d_expr.
+     * NEVER CALL THIS FUNCTION OUTSIDE OF d_expr()
+     * @param node The topmost node to add the finished d_expr to
+     * @param parentExprNode The current expression node we are evaluating
+     * @return TreeNode finished expression (used for recursion and nested expressions)
+     */
+    private static TreeNode d_exprThirdComponent(TreeNode node, TreeNode parentExprNode)
+    {
+        //Add the operator to the D_EXPR
+        parentExprNode.addTreeNode(new State(State.stateType.OP, tokenStream.get(tokenIndex)));
+        tokenIndex++;
+
+        //Find what the third token is
+        boolean foundDouble = dbl(parentExprNode);
+        boolean foundID = foundDouble ? false : tokenStream.get(tokenIndex).getTokenType().equals(TokenType.ID);
+        if(foundID)
+        {
+            //Add ID to the D_EXPR
+            TreeNode idNode = parentExprNode.addTreeNode(new State(State.stateType.D_EXPR));
+            idNode.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex)));
+            tokenIndex++;
+        }
+
+        //Check for nested statements or add
+        if(foundDouble || foundID)
+        {
+            //Check if there is ANOTHER operator, meaning we are nested
+            if (isTokenOp(tokenStream.get(tokenIndex)))
+            {
+                //Create and run nested expression
+                TreeNode res = d_expr(node, true);
+                //Since we nested, we HAVE to add the previous expression to the FRONT of the D_EXPR
+                //This is just how the grammar works
+                res.addTreeNodeToFront(parentExprNode);
+                return parentExprNode;
+            }
+            //Expression is finish, add it and return
+            else {
+                node.addTreeNode(parentExprNode); //add to topmost node
+                return parentExprNode; //hit the REAL end of an D_EXPR
+            }
+        }
+
+        return null; //fail (should never reach here as we are exiting on errors)
     }
 
     /**
