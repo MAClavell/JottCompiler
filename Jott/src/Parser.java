@@ -32,6 +32,7 @@ public class Parser {
     public static TreeNode parse(ArrayList<Token> tokens){
         // Sets the tokens
         tokenStream=tokens;
+        symbols=new HashMap<String, Symbol>();
 
         // The root node
         State state = new State(State.stateType.PROGRAM);
@@ -132,13 +133,21 @@ public class Parser {
             s_expr(node.addTreeNode(new State(State.stateType.S_EXPR)));
         }
 
-        // If the first token is an integer (in i_expr)
-        else if(tokenStream.get(tokenIndex).getTokenType()==TokenType.Integer){
+        // If the first token is an integer or a -integer/+integer (in i_expr)
+        else if(tokenStream.get(tokenIndex).getTokenType()==TokenType.Integer ||
+                (tokenStream.get(tokenIndex).getTokenType()==TokenType.Minus &&
+                        tokenStream.get(tokenIndex+1).getTokenType()==TokenType.Integer)||
+                (tokenStream.get(tokenIndex).getTokenType()==TokenType.Plus &&
+                        tokenStream.get(tokenIndex+1).getTokenType()==TokenType.Integer)){
             i_expr(node.addTreeNode(new State(State.stateType.I_EXPR)), false);
         }
 
-        // If the first token is a double (in d_expr)
-        else if(tokenStream.get(tokenIndex).getTokenType()==TokenType.Double){
+        // If the first token is a double or a -double/+double (in d_expr)
+        else if(tokenStream.get(tokenIndex).getTokenType()==TokenType.Double ||
+                (tokenStream.get(tokenIndex).getTokenType()==TokenType.Minus &&
+                        tokenStream.get(tokenIndex+1).getTokenType()==TokenType.Double)||
+                (tokenStream.get(tokenIndex).getTokenType()==TokenType.Plus &&
+                        tokenStream.get(tokenIndex+1).getTokenType()==TokenType.Double)){
             d_expr(node.addTreeNode(new State(State.stateType.D_EXPR)), false);
         }
 
@@ -229,6 +238,8 @@ public class Parser {
 
             // Adds the id
             node.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex)));
+            symbols.put(tokenStream.get(tokenIndex).getTokenText(),
+                    new Symbol<Integer>(Symbol.variableType.INTEGER, tokenStream.get(tokenIndex).getTokenText()));
             tokenIndex++;
 
             // Adds the = terminal
@@ -252,6 +263,8 @@ public class Parser {
 
             // Adds the id
             node.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex)));
+            symbols.put(tokenStream.get(tokenIndex).getTokenText(),
+                    new Symbol<String>(Symbol.variableType.STRING, tokenStream.get(tokenIndex).getTokenText()));
             tokenIndex++;
 
             // Adds the = terminal
