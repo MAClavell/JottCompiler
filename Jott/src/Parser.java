@@ -314,6 +314,14 @@ public class Parser {
         return false;
 
     }
+
+    /**
+     * Evaluate the upcoming tokens in the tokenstream to see if it is an d_expr
+     * This function will add it to the send in tree node if it is
+     * @param node The topmost node to add the finished d_expr to
+     * @param isNestedExpr FALSE by default. Flag to see if we are evaluating a nested d_expr
+     * @return TreeNode finished expression (used for recursion and nested expressions)
+     */
     private static TreeNode d_expr(TreeNode node, boolean isNestedExpr) {
         //Local expression node to evaluate into
         TreeNode parentExprNode = new TreeNode(new State (State.stateType.D_EXPR));
@@ -360,6 +368,7 @@ public class Parser {
                 return parentExprNode; //hit the REAL end of an D_EXPR
             }
         }
+        else numExprError("Double");
 
         return null; //fail (should never reach here as we are exiting on errors)
     }
@@ -407,6 +416,7 @@ public class Parser {
                 return parentExprNode; //hit the REAL end of an D_EXPR
             }
         }
+        else numExprError("Double");
 
         return null; //fail (should never reach here as we are exiting on errors)
     }
@@ -494,17 +504,7 @@ public class Parser {
                 return parentExprNode; //hit the REAL end of an I_EXPR
             }
         }
-        else {
-            Token t;
-
-            if(tokenIndex+2 < tokenStream.size() && isTokenSign(tokenStream.get(tokenIndex+2)))
-            {
-                t = tokenStream.get(tokenIndex+2);
-            }
-            else t = tokenStream.get(tokenIndex);
-
-            LogError.log(LogError.ErrorType.SYNTAX, "Expected an Integer or ID, got "+t.getTokenType()+" '"+t.getTokenText()+"'", t);
-        }
+        else numExprError("Integer");
 
         return null; //fail (should never reach here as we are exiting on errors)
     }
@@ -552,18 +552,7 @@ public class Parser {
                 return parentExprNode; //hit the REAL end of an I_EXPR
             }
         }
-        else
-        {
-            Token t;
-
-            if(tokenIndex+1 < tokenStream.size() && isTokenSign(tokenStream.get(tokenIndex+1)))
-            {
-                t = tokenStream.get(tokenIndex+1);
-            }
-            else t = tokenStream.get(tokenIndex);
-
-            LogError.log(LogError.ErrorType.SYNTAX, "Expected an Integer or ID, got "+t.getTokenType()+" '"+t.getTokenText()+"'", t);
-        }
+        else numExprError("Integer");
 
         return null; //fail (should never reach here as we are exiting on errors)
     }
@@ -684,6 +673,23 @@ public class Parser {
 
 
     //HELPERS -----------------------------------------------------------------
+
+    /**
+     * Helper method for erroring in a i_expr or d_expr (cuts down on duplicate code)
+     * * @param type The type of expression this is (Integer or Double)
+     */
+    private static void numExprError(String type)
+    {
+        Token t = tokenStream.get(tokenIndex);
+
+        //Checks that if 3 signs in a row that it reports that the 3rd sign is the error not the 2nd sign
+        if(isTokenSign(tokenStream.get(tokenIndex)) && !tokenStream.get(tokenIndex+1).getTokenType().equals(TokenType.ID))
+        {
+            t = tokenStream.get(tokenIndex+1);
+        }
+
+        LogError.log(LogError.ErrorType.SYNTAX, "Expected an "+type+" or ID, got "+t.getTokenType()+" '"+t.getTokenText()+"'", t);
+    }
 
     /**
      * Check if a token is any of the operators
