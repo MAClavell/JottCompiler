@@ -29,10 +29,10 @@ public class Parser {
      * @param tokens the token stream to parse
      * @return the parse tree
      */
-    public static TreeNode parse(ArrayList<Token> tokens){
+    public static TreeNode parse(ArrayList<Token> tokens, HashMap<String, Symbol> symbolTable){
         // Sets the tokens
         tokenStream=tokens;
-        symbols=new HashMap<String, Symbol>();
+        symbols=symbolTable;
 
         // The root node
         State state = new State(State.stateType.PROGRAM);

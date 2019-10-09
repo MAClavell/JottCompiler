@@ -27,6 +27,10 @@ public class TreeNode {
         return branches.size()!=0;
     }
 
+    public ArrayList<TreeNode> getChildren(){
+        return branches;
+    }
+
     /**
      * Adds a new tree node to the tree
      * @param state the state of the node in the tree
