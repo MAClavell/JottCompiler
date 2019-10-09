@@ -43,15 +43,13 @@ public class Parser {
         return root;
     }
 
-    // Done
+    ///Predict Functions ------------------------------------------------------
 
-    ///Predict Functions
+
     private static void program(TreeNode node){
        stmt_list(node.addTreeNode((new State((State.stateType.STMT_LIST)))));
        node.addTreeNode((new State((State.stateType.END_PROG))));
     }
-
-    // DONE
 
     /**
      * Deals with the parsing of a stmt list into either a stmt and stmt list or an epsilon
@@ -74,8 +72,6 @@ public class Parser {
         }
     }
 
-
-
     /**
      *  Deals with parsing a stmt into its various parts
      * @param node the node to branch off of
@@ -92,87 +88,97 @@ public class Parser {
             }
 
             // The assignment stmt
-            else if (tokenStream.get(tokenIndex+2).getTokenType()==TokenType.Assign) {
+            else if (tokenStream.get(tokenIndex).getTokenType().equals(TokenType.ID) &&
+                    tokenIndex+2 < tokenStream.size() && tokenStream.get(tokenIndex+2).getTokenType()==TokenType.Assign) {
                 asmt(node.addTreeNode(new State(State.stateType.ASMT)));
             }
 
             // The expression statement
             else if(Character.isLowerCase(tokenText.charAt(0)) ||
                     Character.isDigit(tokenText.charAt(0)) ||
-                    tokenText.charAt(0)=='"' || tokenText.equals(CONCAT)|| tokenText.equals(CHARAT) ||
-                    tokenText.equals("-") || tokenText.equals("+") || tokenText.equals(".")){
+                    tokenText.equals(CONCAT)|| tokenText.equals(CHARAT) ||
+                    tokenText.equals("-") || tokenText.equals("+") || tokenText.equals(".") ||
+                    tokenStream.get(tokenIndex).getTokenType().equals(TokenType.String)) {
+                //Add expression
                 expr(node.addTreeNode(new State(State.stateType.EXPR)));
-                end_stmt(node);
+
+                //Add end statement
+                if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndStmt)) {
+                    node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex)));
+                    tokenIndex++;
+                }
+                else LogError.log(LogError.ErrorType.SYNTAX, "Expected ';', got " +
+                                tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                        tokenStream.get(tokenIndex));
             }
 
             // Error
             else{
-                LogError.log(LogError.ErrorType.RUNTIME, "Unknown statement", tokenStream.get(tokenIndex));
+                LogError.log(LogError.ErrorType.SYNTAX, "Invalid statement", tokenStream.get(tokenIndex));
             }
         }
 
         // Error
         else{
-            LogError.log(LogError.ErrorType.RUNTIME, "Invalid statement", tokenStream.get(tokenIndex));
+            LogError.log(LogError.ErrorType.SYNTAX, "Invalid statement" , tokenStream.get(tokenIndex));
         }
     }
 
     private static void expr(TreeNode node) {
         // The expression starting with a str_literal (in s_expr)
-        if(tokenStream.get(tokenIndex).getTokenText().charAt(0)=='"'){
-            s_expr(node.addTreeNode(new State(State.stateType.S_EXPR)));
-        }
-
         // The expression starting with concat (in s_expr)
-        else if(tokenStream.get(tokenIndex).getTokenText().equals(CONCAT)){
-            s_expr(node.addTreeNode(new State(State.stateType.S_EXPR)));
-        }
-
         // The expression starting with charAt (in s_expr)
-        else if(tokenStream.get(tokenIndex).getTokenText().equals(CHARAT)){
+        if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.String) ||
+           tokenStream.get(tokenIndex).getTokenText().equals(CONCAT) ||
+           tokenStream.get(tokenIndex).getTokenText().equals(CHARAT)) {
             s_expr(node.addTreeNode(new State(State.stateType.S_EXPR)));
         }
 
         // If the first token is an integer or a -integer/+integer (in i_expr)
         else if(tokenStream.get(tokenIndex).getTokenType()==TokenType.Integer ||
-                (tokenStream.get(tokenIndex).getTokenType()==TokenType.Minus &&
-                        tokenStream.get(tokenIndex+1).getTokenType()==TokenType.Integer)||
-                (tokenStream.get(tokenIndex).getTokenType()==TokenType.Plus &&
-                        tokenStream.get(tokenIndex+1).getTokenType()==TokenType.Integer)){
+                ((tokenStream.get(tokenIndex).getTokenType()==TokenType.Minus ||
+                    tokenStream.get(tokenIndex).getTokenType()==TokenType.Plus) &&
+                tokenStream.get(tokenIndex+1).getTokenType()==TokenType.Integer)){
             i_expr(node, false);
         }
 
         // If the first token is a double or a -double/+double (in d_expr)
         else if(tokenStream.get(tokenIndex).getTokenType()==TokenType.Double ||
-                (tokenStream.get(tokenIndex).getTokenType()==TokenType.Minus &&
-                        tokenStream.get(tokenIndex+1).getTokenType()==TokenType.Double)||
-                (tokenStream.get(tokenIndex).getTokenType()==TokenType.Plus &&
-                        tokenStream.get(tokenIndex+1).getTokenType()==TokenType.Double)){
+                ((tokenStream.get(tokenIndex).getTokenType()==TokenType.Minus ||
+                    tokenStream.get(tokenIndex).getTokenType()==TokenType.Plus) &&
+                tokenStream.get(tokenIndex+1).getTokenType()==TokenType.Double)){
             d_expr(node, false);
         }
 
         // If it is an id
-        else if(tokenStream.get(tokenIndex).getTokenType()==TokenType.ID
-                && symbols.containsKey(tokenStream.get(tokenIndex).getTokenText())){
+        else if(tokenStream.get(tokenIndex).getTokenType()==TokenType.ID){
 
-            // If the id is a double
-            if(symbols.get(tokenStream.get(tokenIndex).getTokenText()).getType()== Symbol.variableType.DOUBLE){
-                d_expr(node, false);
-            }
+            if(symbols.containsKey(tokenStream.get(tokenIndex).getTokenText()))
+            {
+                // If the id is a double
+                if(symbols.get(tokenStream.get(tokenIndex).getTokenText()).getType()== Symbol.variableType.DOUBLE){
+                    d_expr(node, false);
+                }
 
-            // If the id is an integer
-            else if(symbols.get(tokenStream.get(tokenIndex).getTokenText()).getType()== Symbol.variableType.INTEGER){
-                i_expr(node, false);
-            }
+                // If the id is an integer
+                else if(symbols.get(tokenStream.get(tokenIndex).getTokenText()).getType()== Symbol.variableType.INTEGER){
+                    i_expr(node, false);
+                }
 
-            else{
-                s_expr(node.addTreeNode(new State(State.stateType.S_EXPR)));
+                else{
+                    s_expr(node.addTreeNode(new State(State.stateType.S_EXPR)));
+                }
             }
+            //Variable does not exists
+            else LogError.log(LogError.ErrorType.RUNTIME, "Unknown variable '" +
+                    tokenStream.get(tokenIndex).getTokenText()+"'",
+                    tokenStream.get(tokenIndex));
         }
 
-        else {
-            LogError.log(LogError.ErrorType.RUNTIME, "Unknown expression", tokenStream.get(tokenIndex));
-        }
+        //Invalid expression
+        else LogError.log(LogError.ErrorType.SYNTAX, "Expected an Expression, got " +
+                    tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                    tokenStream.get(tokenIndex));
     }
 
     private static void print(TreeNode node) {
@@ -180,20 +186,35 @@ public class Parser {
         node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
         tokenIndex++;
 
-        // Adds the start parenthasis
-        node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex)));
-        tokenIndex++;
+        // Adds the start parenthesis
+        if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.StartParen)) {
+            node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex)));
+            tokenIndex++;
+        }
+        else LogError.log(LogError.ErrorType.SYNTAX, "Expected '(', got " +
+                tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                tokenStream.get(tokenIndex));
 
         // Adds the expression to print
         expr(node.addTreeNode(new State(State.stateType.EXPR)));
 
-        // Adds the end parenthasis
-        node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex)));
-        tokenIndex++;
+        // Adds the end parenthesis
+        if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndParen)) {
+            node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex)));
+            tokenIndex++;
+        }
+        else LogError.log(LogError.ErrorType.SYNTAX, "Expected ')', got " +
+                tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                tokenStream.get(tokenIndex));
 
         // Adds the semicolon
-        node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex)));
-        tokenIndex++;
+        if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndStmt)) {
+            node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex)));
+            tokenIndex++;
+        }
+        else LogError.log(LogError.ErrorType.SYNTAX, "Expected ';', got " +
+                tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                tokenStream.get(tokenIndex));
     }
 
     /**
@@ -202,87 +223,66 @@ public class Parser {
      */
     private static void asmt(TreeNode node) {
 
-        String tokenText=tokenStream.get(tokenIndex).getTokenText();
+        String tokenText = tokenStream.get(tokenIndex).getTokenText();
 
-        // asmt_stmt -> Double  <id > = <d_expr ><end_statement>
-        if(tokenText.equals(DOUBLE)){
+        //Get this variable's type
+        Symbol.variableType varType = null;
+        if (tokenText.equals(DOUBLE))
+            varType = Symbol.variableType.DOUBLE;
+        else if (tokenText.equals(INTEGER))
+            varType = Symbol.variableType.INTEGER;
+        else if (tokenText.equals(STRING))
+            varType = Symbol.variableType.STRING;
+            // An error
+        else
+            LogError.log(LogError.ErrorType.RUNTIME, "Unknown type '" + tokenText + "'",
+                    tokenStream.get(tokenIndex));
 
-            // Adds a terminal "Double" with the corresponding token
-            node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
-            tokenIndex++;
+        // asmt_stmt -> <type>  <id > = <expr ><end_statement>
+        // Adds a terminal with the Type's name with the corresponding token
+        node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
+        tokenIndex++;
 
-            // Adds the id
+        // Adds the id
+        if (tokenStream.get(tokenIndex).getTokenType().equals(TokenType.ID)) {
             node.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex)));
             symbols.put(tokenStream.get(tokenIndex).getTokenText(),
                     new Symbol<Double>(Symbol.variableType.DOUBLE, tokenStream.get(tokenIndex).getTokenText()));
             tokenIndex++;
+        } else LogError.log(LogError.ErrorType.SYNTAX, "Expected a variable name, got " +
+                        tokenStream.get(tokenIndex).getTokenType() + " '" + tokenStream.get(tokenIndex).getTokenText() + "'",
+                tokenStream.get(tokenIndex));
 
-            // Adds the = terminal
+        // Adds the = terminal
+        if (tokenStream.get(tokenIndex).getTokenType().equals(TokenType.Assign)) {
             node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
             tokenIndex++;
+        } else LogError.log(LogError.ErrorType.SYNTAX, "Expected '=', got " +
+                        tokenStream.get(tokenIndex).getTokenType() + " '" + tokenStream.get(tokenIndex).getTokenText() + "'",
+                tokenStream.get(tokenIndex));
 
-            // Adds the d_expr
-            d_expr(node, false);
+        // Adds the expr
+        switch (varType) {
+            case DOUBLE:
+                d_expr(node, false);
+                break;
+            case INTEGER:
+                i_expr(node, false);
+                break;
+            case STRING:
+                s_expr(node.addTreeNode(new State(State.stateType.S_EXPR)));
+                break;
+            default:
+                break;
+        }
 
-            // Adds the end_statement
+        // Adds the end_statement
+        if (tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndStmt)) {
             node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex)));
             tokenIndex++;
-        }
-
-        // asmt_stmt -> Integer  <id > = <i_expr ><end_statement>
-        else if(tokenText.equals(INTEGER)){
-
-            // Adds a terminal "Integer" with the corresponding token
-            node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
-            tokenIndex++;
-
-            // Adds the id
-            node.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex)));
-            symbols.put(tokenStream.get(tokenIndex).getTokenText(),
-                    new Symbol<Integer>(Symbol.variableType.INTEGER, tokenStream.get(tokenIndex).getTokenText()));
-            tokenIndex++;
-
-            // Adds the = terminal
-            node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
-            tokenIndex++;
-
-            // Adds the i_expr
-            i_expr(node, false);
-
-            // Adds the end_statement
-            node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex)));
-            tokenIndex++;
-        }
-
-        // asmt_stmt -> String  <id > = <s_expr ><end_statement>
-        else if(tokenText.equals(STRING)){
-
-            // Adds the terminal "String" with the corresponding token
-            node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
-            tokenIndex++;
-
-            // Adds the id
-            node.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex)));
-            symbols.put(tokenStream.get(tokenIndex).getTokenText(),
-                    new Symbol<String>(Symbol.variableType.STRING, tokenStream.get(tokenIndex).getTokenText()));
-            tokenIndex++;
-
-            // Adds the = terminal
-            node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
-            tokenIndex++;
-
-            // Adds the s_expr
-            s_expr(node.addTreeNode(new State(State.stateType.S_EXPR)));
-
-            // Adds the end_statement
-            node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex)));
-            tokenIndex++;
-        }
-
-        // An error
-        else{
-            LogError.log(LogError.ErrorType.RUNTIME, "Incorrect type for assignment", tokenStream.get(tokenIndex));
-        }
+        } else LogError.log(LogError.ErrorType.SYNTAX, "Expected ';', got " +
+                        tokenStream.get(tokenIndex).getTokenType() + " '" + tokenStream.get(tokenIndex).getTokenText() + "'",
+                tokenStream.get(tokenIndex));
     }
 
     /**
@@ -562,21 +562,13 @@ public class Parser {
         node.addTreeNode(new State(State.stateType.STR, tokenStream.get(tokenIndex)));
         tokenIndex++;
     }
-    /*private static void str(TreeNode node) {
-
-        // Builds a string using the quote as a terminator
-        while(!tokenStream.get(tokenIndex).getTokenText().equals("\"")){
-            node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
-            tokenIndex++;
-        }
-    }*/
 
     private static void s_expr(TreeNode node) {
 
         String tokenText=tokenStream.get(tokenIndex).getTokenText();
 
         // s_expr -> <str_literal>
-        if(tokenText.charAt(0)=='"'){
+        if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.String)){
             str_literal(node.addTreeNode(new State(State.stateType.STR_LITERAL)));
         }
 
@@ -588,21 +580,36 @@ public class Parser {
             tokenIndex++;
 
             // The start_paren terminal
-            node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex)));
-            tokenIndex++;
+            if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.StartParen)) {
+                node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex)));
+                tokenIndex++;
+            }
+            else LogError.log(LogError.ErrorType.SYNTAX, "Expected '(', got " +
+                    tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                    tokenStream.get(tokenIndex));
 
             // Adds the first s_expr
             s_expr(node.addTreeNode(new State(State.stateType.S_EXPR)));
 
             // Adds the comma terminal
-            node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
-            tokenIndex++;
+            if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.Comma)) {
+                node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
+                tokenIndex++;
+            }
+            else LogError.log(LogError.ErrorType.SYNTAX, "Expected ',', got " +
+                    tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                    tokenStream.get(tokenIndex));
 
             // Adds the second s_expr
             s_expr(node.addTreeNode(new State(State.stateType.S_EXPR)));
 
-            node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex)));
-            tokenIndex++;
+            if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndParen)) {
+                node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex)));
+                tokenIndex++;
+            }
+            else LogError.log(LogError.ErrorType.SYNTAX, "Expected ')', got " +
+                            tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                    tokenStream.get(tokenIndex));
         }
 
         // s_expr -> charAt <start_paren > <s_expr >, <i_expr > <end_paren>
@@ -613,22 +620,37 @@ public class Parser {
             tokenIndex++;
 
             // Adds the start paren
-            node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex)));
-            tokenIndex++;
+            if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.StartParen)) {
+                node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex)));
+                tokenIndex++;
+            }
+            else LogError.log(LogError.ErrorType.SYNTAX, "Expected '(', got " +
+                    tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                    tokenStream.get(tokenIndex));
 
             // Adds the s_expr
             s_expr(node.addTreeNode(new State(State.stateType.S_EXPR)));
 
             // Adds the comma terminal
-            node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
-            tokenIndex++;
+            if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.Comma)) {
+                node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
+                tokenIndex++;
+            }
+            else LogError.log(LogError.ErrorType.SYNTAX, "Expected ',', got " +
+                    tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                    tokenStream.get(tokenIndex));
 
             // Adds the i_expr
             i_expr(node, false);
 
             // Adds the end paren
-            node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex)));
-            tokenIndex++;
+            if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndParen)) {
+                node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex)));
+                tokenIndex++;
+            }
+            else LogError.log(LogError.ErrorType.SYNTAX, "Expected ')', got " +
+                    tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                    tokenStream.get(tokenIndex));
         }
 
         // s_expr-> <id>
@@ -639,40 +661,14 @@ public class Parser {
 
         // Error
         else{
-            LogError.log(LogError.ErrorType.RUNTIME, "Unknown string expression", tokenStream.get(tokenIndex));
-        }
-    }
-
-    private static void start_paren(TreeNode node) {
-        if(tokenStream.get(tokenIndex).getTokenType()==TokenType.StartParen) {
-            node.addTreeNode(new State((State.stateType.START_PAREN)));
-            tokenIndex++;
-        }
-        else {
-            node.addTreeNode(new State(State.stateType.EPSILON));
-        }
-    }
-    private static void end_paren(TreeNode node) {
-        if(tokenStream.get(tokenIndex).getTokenType()==TokenType.EndParen) {
-            node.addTreeNode(new State((State.stateType.END_PAREN)));
-            tokenIndex++;
-        }
-        else {
-            node.addTreeNode(new State(State.stateType.EPSILON));
-        }
-    }
-    private static void end_stmt(TreeNode node) {
-        if(tokenStream.get(tokenIndex).getTokenType()==TokenType.EndStmt) {
-            node.addTreeNode(new State((State.stateType.END_STATEMENT)));
-            tokenIndex++;
-        }
-        else {
-            node.addTreeNode(new State(State.stateType.EPSILON));
+            LogError.log(LogError.ErrorType.SYNTAX, "Expected a String, got " +
+                    tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                    tokenStream.get(tokenIndex));
         }
     }
 
 
-    //HELPERS -----------------------------------------------------------------
+    ///HELPERS ---------------------------------------------------------------
 
     /**
      * Helper method for erroring in a i_expr or d_expr (cuts down on duplicate code)

@@ -15,6 +15,8 @@ public class Scanner {
     {
         ArrayList<Token> tokens = new ArrayList<Token>();
 
+        text += '\0';
+
         //Token tracking
         int lineNum = 1;
         int columnNum = 1;
@@ -60,7 +62,7 @@ public class Scanner {
                 }
 
                 //Run scanner logic and get the result
-                short result = isValidCharForTokenType(c, textBuilder.length());
+                short result = isValidCharForTokenType(c, textBuilder);
 
                 //Comment found, throw away the rest of this line
                 if (result == 3)
@@ -78,7 +80,8 @@ public class Scanner {
                     if (result == 2)
                         textBuilder.append(c);
                     //If we DIDN'T manually tell the scanner to stop, we have to go back one char
-                    else
+                    //Hacky method for strings don't @me
+                    else if(c != '\"')
                     {
                         i--;
                         columnNum--;
@@ -109,27 +112,28 @@ public class Scanner {
             }
         }
 
-        tokens.add(new Token("$$", TokenType.EoF, lineNum, columnNum, columnNum));
         return tokens;
     }
 
     /**
      * Check if an inputted char is a valid token
      * @param c The character to check
-     * @param currLengthOfToken The current length of the token being created
+     * @param textBuilder The StringBuilder that is building this token's text
      * @return A short representing the success of the operation:
      *          0 = add this char to the token
      *          1 = complete the token
      *          2 = complete the token and append this char
      *          3 = comment was found
      */
-    private static short isValidCharForTokenType(char c, int currLengthOfToken)
+    private static short isValidCharForTokenType(char c, StringBuilder textBuilder)
     {
         //Switch through all the types of tokens
         switch (type) {
             case String:
-                if(c == '"' && currLengthOfToken != 0)
-                    return 2; //end the string with a quote
+                if(c == '"' && textBuilder.length() != 0)
+                {
+                    textBuilder.deleteCharAt(0);
+                }
                 else return 0; //strings can contain all characters
 
             case ID:
@@ -148,7 +152,7 @@ public class Scanner {
                 break;
 
             case Double:
-                if(Character.isDigit(c) || (c == '.' && currLengthOfToken == 0))
+                if(Character.isDigit(c) || (c == '.' && textBuilder.length() == 0))
                     return 0;
                 break;
 
@@ -168,7 +172,7 @@ public class Scanner {
                 return 2; //can only contain 1 character
 
             case Divide:
-                if(c == '/' && currLengthOfToken == 1)
+                if(c == '/' && textBuilder.length() == 1)
                     return 3;
                 else if(c == '/')
                     return 0;
@@ -185,6 +189,9 @@ public class Scanner {
 
             case Comma:
                 return 2; //can only contain 1 character
+
+            case EoF:
+                return 2;
         }
 
         return 1; //complete the token if we weren't told to save the char
@@ -223,6 +230,8 @@ public class Scanner {
                 return TokenType.Plus;
             case ',':
                 return TokenType.Comma;
+            case '\0':
+                return TokenType.EoF;
             default:
                 break; //check other for id and numbers
         }

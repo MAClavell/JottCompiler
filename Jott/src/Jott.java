@@ -28,6 +28,7 @@ public class Jott {
         for (Token t : tokens) {
             System.out.println(t);
         }
+        System.out.println(text + '\n');
 
         HashMap<String, Symbol> symbolTable = new HashMap<String, Symbol>();
         TreeNode root = Parser.parse(tokens, symbolTable);
