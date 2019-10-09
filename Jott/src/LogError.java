@@ -30,7 +30,7 @@ public class LogError {
 
     public static void log(ErrorType eType, String message, int lineNumber, int columnStart, int columnEnd){
         System.out.println(eType+": "+message+", "+"\""+lines[lineNumber-1]+"\" ("+fileName+":"+lineNumber+
-            ","+eToken.getColumnStart()+"-"+eToken.getColumnEnd()+")");
+            ","+columnStart+"-"+columnEnd+")");
         System.exit(1);
     }
 }

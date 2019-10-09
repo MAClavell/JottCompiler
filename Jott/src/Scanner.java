@@ -40,6 +40,7 @@ public class Scanner {
                     {
                         //Move to next token
                         columnNum++;
+                        columnStart = columnNum;
                         if (c == '\n')
                         {
                             lineNum++;
@@ -108,7 +109,7 @@ public class Scanner {
             }
         }
 
-        tokens.add(new Token("$$", TokenType.EoF, lineNum, columnStart, columnNum));
+        tokens.add(new Token("$$", TokenType.EoF, lineNum, columnNum, columnNum));
         return tokens;
     }
 
@@ -233,7 +234,5 @@ public class Scanner {
             return TokenType.Integer;
         else return null; //fail
     }
-
-
 
 }
