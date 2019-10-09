@@ -53,7 +53,7 @@ public class Scanner {
                     type = findTokenTypeFromChar(c);
                     if (type == null) //type is STILL null
                     {
-                        System.out.println("Syntax Error: Invalid character, \"" + c + "\" (inputs\"" + fileName + ":" + lineNum);
+                        LogError.log(LogError.ErrorType.SYNTAX, "Invalid character, '" + c + "' found", lineNum);
                         break;
                     } else columnStart = columnNum; //start of a token
                 }

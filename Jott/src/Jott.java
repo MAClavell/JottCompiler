@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Jott {
 
@@ -28,7 +29,8 @@ public class Jott {
             System.out.println(t);
         }
 
-        TreeNode root = Parser.parse(tokens);
+        HashMap<String, Symbol> symbolTable = new HashMap<String, Symbol>();
+        TreeNode root = Parser.parse(tokens, symbolTable);
         System.out.println(root);
     }
 }

@@ -139,7 +139,7 @@ public class Parser {
                         tokenStream.get(tokenIndex+1).getTokenType()==TokenType.Integer)||
                 (tokenStream.get(tokenIndex).getTokenType()==TokenType.Plus &&
                         tokenStream.get(tokenIndex+1).getTokenType()==TokenType.Integer)){
-            i_expr(node.addTreeNode(new State(State.stateType.I_EXPR)), false);
+            i_expr(node, false);
         }
 
         // If the first token is a double or a -double/+double (in d_expr)
@@ -148,7 +148,7 @@ public class Parser {
                         tokenStream.get(tokenIndex+1).getTokenType()==TokenType.Double)||
                 (tokenStream.get(tokenIndex).getTokenType()==TokenType.Plus &&
                         tokenStream.get(tokenIndex+1).getTokenType()==TokenType.Double)){
-            d_expr(node.addTreeNode(new State(State.stateType.D_EXPR)), false);
+            d_expr(node, false);
         }
 
         // If it is an id
@@ -157,12 +157,12 @@ public class Parser {
 
             // If the id is a double
             if(symbols.get(tokenStream.get(tokenIndex).getTokenText()).getType()== Symbol.variableType.DOUBLE){
-                d_expr(node.addTreeNode(new State(State.stateType.D_EXPR)), false);
+                d_expr(node, false);
             }
 
             // If the id is an integer
             else if(symbols.get(tokenStream.get(tokenIndex).getTokenText()).getType()== Symbol.variableType.INTEGER){
-                i_expr(node.addTreeNode(new State(State.stateType.I_EXPR)), false);
+                i_expr(node, false);
             }
 
             else{
@@ -222,7 +222,7 @@ public class Parser {
             tokenIndex++;
 
             // Adds the d_expr
-            d_expr(node.addTreeNode(new State(State.stateType.D_EXPR)), false);
+            d_expr(node, false);
 
             // Adds the end_statement
             node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex)));
@@ -437,6 +437,7 @@ public class Parser {
 
         if(foundSign)
             tokenIndex--;
+
         return false;
     }
 
@@ -493,6 +494,17 @@ public class Parser {
                 return parentExprNode; //hit the REAL end of an I_EXPR
             }
         }
+        else {
+            Token t;
+
+            if(tokenIndex+2 < tokenStream.size() && isTokenSign(tokenStream.get(tokenIndex+2)))
+            {
+                t = tokenStream.get(tokenIndex+2);
+            }
+            else t = tokenStream.get(tokenIndex);
+
+            LogError.log(LogError.ErrorType.SYNTAX, "Expected an Integer or ID, got "+t.getTokenType()+" '"+t.getTokenText()+"'", t);
+        }
 
         return null; //fail (should never reach here as we are exiting on errors)
     }
@@ -511,8 +523,7 @@ public class Parser {
         tokenIndex++;
 
         //Find what the third token is
-        boolean foundInteger = integer(parentExprNode);
-        boolean foundID = foundInteger ? false : tokenStream.get(tokenIndex).getTokenType().equals(TokenType.ID);
+        boolean foundID = tokenStream.get(tokenIndex).getTokenType().equals(TokenType.ID);
         if(foundID)
         {
             //Add ID to the I_EXPR
@@ -520,6 +531,7 @@ public class Parser {
             idNode.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex)));
             tokenIndex++;
         }
+        boolean foundInteger = foundID ? false : integer(parentExprNode);
 
         //Check for nested statements or add
         if(foundInteger || foundID)
@@ -539,6 +551,18 @@ public class Parser {
                 node.addTreeNode(parentExprNode); //add to topmost node
                 return parentExprNode; //hit the REAL end of an I_EXPR
             }
+        }
+        else
+        {
+            Token t;
+
+            if(tokenIndex+1 < tokenStream.size() && isTokenSign(tokenStream.get(tokenIndex+1)))
+            {
+                t = tokenStream.get(tokenIndex+1);
+            }
+            else t = tokenStream.get(tokenIndex);
+
+            LogError.log(LogError.ErrorType.SYNTAX, "Expected an Integer or ID, got "+t.getTokenType()+" '"+t.getTokenText()+"'", t);
         }
 
         return null; //fail (should never reach here as we are exiting on errors)

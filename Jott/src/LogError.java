@@ -1,16 +1,34 @@
 public class LogError {
     static String[] lines;
     static String fileName;
-    enum ErrorType{SYNTAX,RUNTIME}
 
-    public static void setupHandler(String[] ls, String fN)
-    {
+    enum ErrorType{
+        SYNTAX {
+            @Override
+            public String toString() {
+                return "Syntax Error";
+            }
+        },
+        RUNTIME {
+            @Override
+            public String toString() {
+                return "Runtime Error";
+            }
+        }
+    }
+
+    public static void setupHandler(String[] ls, String fN) {
         lines = ls;
         fileName = fN;
     }
 
     public static void log(ErrorType eType, String message, Token eToken){
-        System.out.println(eType+": "+message+", "+"\""+lines[eToken.getLineNum()]+"\" ("+fileName+":"+eToken.getLineNum()+")");
+        System.out.println(eType+": "+message+", "+"\""+lines[eToken.getLineNum()-1]+"\" ("+fileName+":"+eToken.getLineNum()+")");
+        System.exit(1);
+    }
+
+    public static void log(ErrorType eType, String message, int lineNumber){
+        System.out.println(eType+": "+message+", "+"\""+lines[lineNumber-1]+"\" ("+fileName+":"+lineNumber+")");
         System.exit(1);
     }
 }
