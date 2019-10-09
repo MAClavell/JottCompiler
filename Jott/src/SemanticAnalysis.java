@@ -30,6 +30,32 @@ public class SemanticAnalysis {
 
     private static void stmt(TreeNode node){
 
+        // Evaluates the print statement
+        if(node.getChildren().get(0).getState().getState() == State.stateType.PRINT){
+            print(node.getChildren().get(0));
+        }
+
+        // Evaluates the asmt statement
+        else if(node.getChildren().get(0).getState().getState() == State.stateType.ASMT){
+            asmt_stmt(node.getChildren().get(0));
+        }
+
+        // Evaluates the <expr><end_statement>
+        else{
+            expr(node.getChildren().get(0));
+        }
+    }
+
+    private static void print(TreeNode node){
+
+    }
+
+    private static void asmt_stmt(TreeNode node){
+
+    }
+
+    private static void expr(TreeNode node){
+
     }
 
 }
