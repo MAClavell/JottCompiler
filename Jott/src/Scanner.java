@@ -53,7 +53,7 @@ public class Scanner {
                     type = findTokenTypeFromChar(c);
                     if (type == null) //type is STILL null
                     {
-                        LogError.log(LogError.ErrorType.SYNTAX, "Invalid character, '" + c + "' found", lineNum);
+                        LogError.log(LogError.ErrorType.SYNTAX, "Invalid character '" + c + "' found", lineNum, columnStart, columnNum);
                         break;
                     } else columnStart = columnNum; //start of a token
                 }
