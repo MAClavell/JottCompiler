@@ -43,6 +43,8 @@ public class SemanticAnalysis {
         // Evaluates the <expr><end_statement>
         else{
             // TODO implement this but skip the expr node into i_expr/d_expr/etc like in print
+            // TODO is this what we were looking for? See helper function
+            checkExpressions(node);
         }
     }
 
@@ -62,22 +64,7 @@ public class SemanticAnalysis {
             }
         }
         else {
-            TreeNode grandchildNode = childNode.getChildren().get(0);
-
-            // If the grandchild's expr's state is an I_EXPR
-            if (grandchildNode.getState().getState() == State.stateType.I_EXPR) {
-                System.out.println(i_expr(grandchildNode));
-            }
-
-            // If the grandchild's expr's state is a D_EXPR
-            else if (grandchildNode.getState().getState() == State.stateType.D_EXPR) {
-                System.out.println(d_expr(grandchildNode));
-            }
-
-            // If the grandchild's expr's state is a S_EXPR
-            else {
-                System.out.println(s_expr(grandchildNode));
-            }
+            checkExpressions(childNode);
         }
     }
 
@@ -194,5 +181,26 @@ public class SemanticAnalysis {
 
     private static void semanticError(TreeNode node){
 
+    }
+
+    ///HELPERS ---------------------------------------------------------------
+
+    public static void checkExpressions(TreeNode node) {
+        TreeNode grandchildNode = node.getChildren().get(0);
+
+        // If the grandchild expr's state is an I_EXPR
+        if (grandchildNode.getState().getState() == State.stateType.I_EXPR) {
+            System.out.println(i_expr(grandchildNode));
+        }
+
+        // If the grandchild expr's state is a D_EXPR
+        else if (grandchildNode.getState().getState() == State.stateType.D_EXPR) {
+            System.out.println(d_expr(grandchildNode));
+        }
+
+        // If the grandchild expr's state is a S_EXPR
+        else {
+            System.out.println(s_expr(grandchildNode));
+        }
     }
 }
