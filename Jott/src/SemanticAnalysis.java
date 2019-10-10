@@ -256,12 +256,56 @@ public class SemanticAnalysis {
         return -1;
     }
 
-    private static String s_expr(TreeNode node){
-
+    private static boolean verifyStringID(TreeNode node){
+        if(symbols.containsKey(node.getToken().getTokenText())){
+            if(symbols.get(node.getToken().getTokenText()) != null &&
+                    symbols.get(node.getToken().getTokenText()).getType()== Symbol.variableType.STRING){
+                return true;
+            }
+        }
+        return false;
     }
 
-    private static void semanticError(TreeNode node){
+    private static String s_expr(TreeNode node){
 
+        TreeNode childNode=node.getChildren().get(0);
+
+        // It is a str_literal
+        if(childNode.getToken().getTokenType()==TokenType.String){
+
+            // Return everything but the quotes
+            return (String)childNode.getToken().getTokenText().substring(1, -1);
+        }
+
+        // It is the concat function
+        else if(childNode.getToken().getTokenText().equals("concat")){
+
+            // Concats the strings without quotes
+            return s_expr(node.getChildren().get(2))+ s_expr(node.getChildren().get(4));
+        }
+
+        // It is the charAt
+        else if(childNode.getToken().getTokenText().equals("charAt")){
+            return s_expr(node.getChildren().get(2)).charAt(i_expr(node.getChildren().get(4)))+"";
+        }
+
+        // It is an id
+        else{
+            if(verifyStringID(childNode)){
+                return (String) symbols.get(childNode.getToken().getTokenText()).getValue();
+            }
+
+            // TODO error
+        }
+
+        // Should never get to this point
+        return "";
+    }
+
+    private static void semanticError(TreeNode node, String message){
+        System.err.println("Error on line "+node.getToken().getLineNum()+" column "+node.getToken().getColumnStart()+
+                ": "+message);
+        System.exit(1);
     }
 
     ///HELPERS ---------------------------------------------------------------
