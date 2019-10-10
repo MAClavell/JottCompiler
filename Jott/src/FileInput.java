@@ -24,8 +24,8 @@ public class FileInput {
                 file+=(char)c;
             }
         } catch (IOException e) {
-            System.err.println("Your file was not found");
-            return null;
+            System.err.println("Error: File '"+fileName+"' not found");
+            System.exit(1);
         }
         return file;
     }

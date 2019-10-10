@@ -246,8 +246,24 @@ public class Parser {
         // Adds the id
         if (tokenStream.get(tokenIndex).getTokenType().equals(TokenType.ID)) {
             node.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex)));
-            symbols.put(tokenStream.get(tokenIndex).getTokenText(),
-                    new Symbol<Double>(Symbol.variableType.DOUBLE, tokenStream.get(tokenIndex).getTokenText()));
+
+            //Generate symbol
+            Symbol s = null;
+            switch (varType) {
+                case DOUBLE:
+                    s = new Symbol<Double>(Symbol.variableType.DOUBLE, tokenStream.get(tokenIndex).getTokenText());
+                    break;
+                case INTEGER:
+                    s = new Symbol<Integer>(Symbol.variableType.INTEGER, tokenStream.get(tokenIndex).getTokenText());
+                    break;
+                case STRING:
+                    s = new Symbol<String>(Symbol.variableType.STRING, tokenStream.get(tokenIndex).getTokenText());
+                    break;
+                default:
+                    break;
+            }
+            symbols.put(tokenStream.get(tokenIndex).getTokenText(), s);
+
             tokenIndex++;
         } else LogError.log(LogError.ErrorType.SYNTAX, "Expected a variable name, got " +
                         tokenStream.get(tokenIndex).getTokenType() + " '" + tokenStream.get(tokenIndex).getTokenText() + "'",
@@ -679,6 +695,7 @@ public class Parser {
         Token t = tokenStream.get(tokenIndex);
 
         //Checks that if 3 signs in a row that it reports that the 3rd sign is the error not the 2nd sign
+        //EX: '3 + + -5' the error should report the '-' as wrong, not the '+'
         if(isTokenSign(tokenStream.get(tokenIndex)) && !tokenStream.get(tokenIndex+1).getTokenType().equals(TokenType.ID))
         {
             t = tokenStream.get(tokenIndex+1);
