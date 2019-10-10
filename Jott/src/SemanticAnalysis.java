@@ -91,22 +91,22 @@ public class SemanticAnalysis {
             if(verifyIntID(node)){
                 return (Integer)symbols.get(childNode.getToken().getTokenText()).getValue();
             }
-            // Error
+            // TODO Error
         }
 
         // If it is an integer
         else if(childNode.getState().getState()== State.stateType.INT ||
                 childNode.getState().getState()== State.stateType.SIGN){
-            int secondOp;
+            int operand;
 
             // If the first symbol is a sign
             if(childNode.getState().getState()== State.stateType.SIGN){
-                secondOp=Integer.parseInt(node.getChildren().get(childNumber+1).getToken().getTokenText());
+                operand=Integer.parseInt(node.getChildren().get(childNumber+1).getToken().getTokenText());
 
                 if(childNode.getToken().getTokenType()==TokenType.Minus){
-                    secondOp*=-1;
+                    operand*=-1;
                 }
-                return secondOp;
+                return operand;
             }
 
             // If there is no sign
@@ -131,8 +131,8 @@ public class SemanticAnalysis {
         // There are multiple operators
         if(node.getChildren().size()>2) {
 
-            int secondOp;
             int sign;
+
             // The first operator had a sign
             if (node.getChildren().get(0).getState().getState() == State.stateType.SIGN) {
                 sign=2;
@@ -145,7 +145,7 @@ public class SemanticAnalysis {
             }
 
             // Gets the second operand
-            secondOp=parseIntOperand(node, sign+1);
+            int secondOp=parseIntOperand(node, sign+1);
 
             // Uses the sign number
             switch(node.getChildren().get(sign).getToken().getTokenType()){
@@ -171,8 +171,89 @@ public class SemanticAnalysis {
         return -1;
     }
 
-    private static double d_expr(TreeNode node){
+    private static boolean verifyDoubleID(TreeNode node){
+        if(symbols.containsKey(node.getToken().getTokenText())){
+            if(symbols.get(node.getToken().getTokenText()) != null &&
+                    symbols.get(node.getToken().getTokenText()).getType()== Symbol.variableType.DOUBLE){
+                return true;
+            }
+        }
+        return false;
+    }
 
+    private static double parseDoubleOperand(TreeNode node, int childNumber){
+
+        TreeNode childNode=node.getChildren().get(childNumber);
+
+        // If the child node is an ID
+        if(childNode.getToken().getTokenType()==TokenType.ID){
+            if(verifyDoubleID(childNode)){
+                return (Double)symbols.get(childNode.getToken().getTokenText()).getValue();
+            }
+
+            //TODO error
+        }
+
+        // If the child node is a double
+        else if(childNode.getState().getState()== State.stateType.DBL||
+                childNode.getState().getState()== State.stateType.SIGN){
+            if(childNode.getState().getState()== State.stateType.SIGN){
+                double operand=Double.parseDouble(node.getChildren().get(childNumber+1).getToken().getTokenText());
+
+                if(childNode.getToken().getTokenType()==TokenType.Minus){
+                    operand*=-1;
+                }
+
+                return operand;
+            }
+        }
+
+        // If the child node is a d_expr
+        else{
+            return d_expr(childNode);
+        }
+
+        // Should never get to this point
+        return -1;
+    }
+
+    private static double d_expr(TreeNode node){
+        double firstOp=parseDoubleOperand(node, 0);
+
+        // If there is more than one operand
+        if(node.getChildren().size()>2){
+
+            // Where the +, -, /, * sign is
+            int sign=1;
+
+            // If there was a sign at the beginning
+            if(node.getChildren().get(0).getState().getState()== State.stateType.SIGN){
+                sign=2;
+            }
+
+            // The value of the second operand
+            double secondOp=parseDoubleOperand(node, sign+1);
+
+            switch(node.getChildren().get(sign).getToken().getTokenType()){
+                case Minus:
+                    return firstOp-secondOp;
+                case Plus:
+                    return firstOp+secondOp;
+                case Mult:
+                    return firstOp*secondOp;
+                case Divide:
+                    return firstOp/secondOp;
+            }
+
+        }
+
+        // If there is only one operand
+        else{
+            return firstOp;
+        }
+
+        // Should never get to this point
+        return -1;
     }
 
     private static String s_expr(TreeNode node){
