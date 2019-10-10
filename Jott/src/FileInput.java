@@ -23,6 +23,8 @@ public class FileInput {
             while((c=bufferedReader.read())!=-1){
                 file+=(char)c;
             }
+            //Handle multi-platform line separators by just replacing them
+            file = file.replace(System.lineSeparator(), "\n");
         } catch (IOException e) {
             System.err.println("Error: File '"+fileName+"' not found");
             System.exit(1);

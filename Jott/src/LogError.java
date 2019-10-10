@@ -23,14 +23,18 @@ public class LogError {
     }
 
     public static void log(ErrorType eType, String message, Token eToken){
-        System.out.println(eType+": "+message+", "+"\""+lines[eToken.getLineNum()-1]+"\" ("+fileName+":"+eToken.getLineNum()+
+        System.out.println(eType+": "+message+", "+"\""+
+                lines[eToken.getLineNum()-1] +
+                "\" (" +fileName+":"+eToken.getLineNum()+
                 ","+eToken.getColumnStart()+"-"+eToken.getColumnEnd()+")");
         System.exit(1);
     }
 
     public static void log(ErrorType eType, String message, int lineNumber, int columnStart, int columnEnd){
-        System.out.println(eType+": "+message+", "+"\""+lines[lineNumber-1]+"\" ("+fileName+":"+lineNumber+
-            ","+columnStart+"-"+columnEnd+")");
+        System.out.println(eType+": "+message+", "+"\""+
+                lines[lineNumber-1]+
+                "\" ("+fileName+":"+lineNumber+
+                ","+columnStart+"-"+columnEnd+")");
         System.exit(1);
     }
 }
