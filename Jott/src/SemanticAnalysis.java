@@ -142,7 +142,7 @@ public class SemanticAnalysis {
 
             // If there is no sign
             else{
-                return Integer.parseInt(childNode.getToken().getTokenText());
+                return Integer.parseInt(childNode.getChildren().get(childNumber).getToken().getTokenText());
             }
         }
 
@@ -217,7 +217,7 @@ public class SemanticAnalysis {
         TreeNode childNode=node.getChildren().get(childNumber);
 
         // If the child node is an ID
-        if(childNode.getToken().getTokenType()==TokenType.ID){
+        if(childNode.getState().getState()== State.stateType.ID){
             if(verifyDoubleID(childNode)){
                 return (Double)symbols.get(childNode.getToken().getTokenText()).getValue();
             }
@@ -228,6 +228,8 @@ public class SemanticAnalysis {
         // If the child node is a double
         else if(childNode.getState().getState()== State.stateType.DBL||
                 childNode.getState().getState()== State.stateType.SIGN){
+
+            // If there is a sign as the first value
             if(childNode.getState().getState()== State.stateType.SIGN){
                 double operand=Double.parseDouble(node.getChildren().get(childNumber+1).getToken().getTokenText());
 
@@ -236,6 +238,10 @@ public class SemanticAnalysis {
                 }
 
                 return operand;
+            }
+
+            else{
+                return Double.parseDouble(childNode.getChildren().get(0).getToken().getTokenText());
             }
         }
 
@@ -302,7 +308,7 @@ public class SemanticAnalysis {
         TreeNode childNode=node.getChildren().get(0);
 
         // It is a str_literal
-        if(childNode.getToken().getTokenType()==TokenType.String){
+        if(childNode.getState().getState()== State.stateType.STR_LITERAL){
 
             // Return everything but the quotes
             return (String)childNode.getToken().getTokenText().substring(1, -1);
