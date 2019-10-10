@@ -1,1 +1,2 @@
-print(x + + 3);
+Integer x = 5;
+print(x + + -3);
