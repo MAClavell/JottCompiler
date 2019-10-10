@@ -105,28 +105,51 @@ public class SemanticAnalysis {
             // It is in the symbol table as the same type and is not undefined
             if(verifyIntID(childID)){
 
+                // The first operator
+                Integer firstOp=(Integer) symbols.get(childID.getToken().getTokenText()).getValue();;
+
                 // If there is a second child
                 if(node.getChildren().size()>1){
 
-                    // If the second operation is an id
-                    if(){
+                    Integer secondOp;
 
+                    // If the second operation is an id
+                    if(node.getChildren().get(2).getState().getState() == State.stateType.ID){
+                        if(verifyIntID(node.getChildren().get(2))){
+                            secondOp=(Integer)symbols.get(node.getChildren().get(2).getToken().getTokenText()).getValue();
+                        }
+                        else {
+                            // TODO ERROR
+                        }
                     }
 
                     // If the second operation is an Integer (or +/-)
-                    else if(){
+                    else if(node.getChildren().get(2).getState().getState()== State.stateType.INT ||
+                            node.getChildren().get(2).getState().getState()== State.stateType.SIGN){
 
                     }
 
-                    // If the second operation is
+                    // If the second operation is an i_expr
                     else{
 
+                    }
+
+                    // Return statement based on the operation (+,-,/,*)
+                    switch(node.getChildren().get(1).getToken().getTokenType()){
+                        case Minus:
+                            return firstOp-secondOp;
+                        case Plus:
+                            return firstOp+secondOp;
+                        case Mult:
+                            return firstOp*secondOp;
+                        case Divide:
+                            return firstOp/secondOp;
                     }
                 }
 
                 // If this is the only state in the expression return it (autoboxes)
                 else{
-                    return (Integer) symbols.get(0).getValue();
+                    return firstOp;
                 }
             }
 
@@ -134,7 +157,50 @@ public class SemanticAnalysis {
         }
 
         // If the leftmost child is an Integer
-        else if(node.getChildren().get(0).getState().getState()== State.stateType.INT){
+        else if(node.getChildren().get(0).getState().getState()== State.stateType.INT ||
+                node.getChildren().get(0).getState().getState()== State.stateType.SIGN){
+
+            /*
+             *   Gets the first integer
+             */
+
+            Integer firstOp;
+
+            // There is no sign
+            if(node.getChildren().size()==1){
+                firstOp=Integer.parseInt(node.getChildren().get(0).getToken().getTokenText());
+            }
+
+            // There is a sign
+            else{
+                firstOp=Integer.parseInt(node.getChildren().get(1).getToken().getTokenText());
+
+                // Adds a negative sign
+                if(node.getChildren().get(0).getToken().getTokenType()==TokenType.Minus){
+                    firstOp*=-1;
+                }
+            }
+
+            /*
+             * Parses a second operand if there is one and handles returning
+             */
+            if(node.getChildren().size() > 2){
+                if(){
+
+                }
+
+                else if(){
+
+                }
+                else{
+
+                }
+            }
+
+            // There is only one op
+            else{
+                return firstOp;
+            }
 
         }
 
