@@ -22,6 +22,10 @@ public class Symbol <T>{
         value=newValue;
     }
 
+    public T getValue(){
+        return value;
+    }
+
     public boolean sameType(Symbol other){
         return this.type==other.type;
     }
