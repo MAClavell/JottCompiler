@@ -43,9 +43,7 @@ public class SemanticAnalysis {
         // Evaluates the <expr><end_statement>
         else{
             // TODO implement this but skip the expr node into i_expr/d_expr/etc like in print
-            // TreeNode grandchildNode = node.getChildren().get(0);
-            // checkExpressions(grandchildNode);
-            // Not sure which is correct here!?
+            // TODO is this what we were looking for? See helper function
             checkExpressions(node);
         }
     }
@@ -66,8 +64,7 @@ public class SemanticAnalysis {
             }
         }
         else {
-            TreeNode grandchildNode = childNode.getChildren().get(0);
-            checkExpressions(grandchildNode);
+            checkExpressions(childNode);
         }
     }
 
@@ -101,7 +98,7 @@ public class SemanticAnalysis {
                 // If there is a second child
                 if(node.getChildren().size()>1){
 
-                    Integer secondOp;
+                    Integer secondOp = null;
 
                     // If the second operation is an id
                     if(node.getChildren().get(2).getState().getState() == State.stateType.ID){
@@ -124,16 +121,18 @@ public class SemanticAnalysis {
 
                     }
 
-                    // Return statement based on the operation (+,-,/,*)
-                    switch(node.getChildren().get(1).getToken().getTokenType()){
-                        case Minus:
-                            return firstOp-secondOp;
-                        case Plus:
-                            return firstOp+secondOp;
-                        case Mult:
-                            return firstOp*secondOp;
-                        case Divide:
-                            return firstOp/secondOp;
+                    if (secondOp != null) {
+                        // Return statement based on the operation (+,-,/,*)
+                        switch(node.getChildren().get(1).getToken().getTokenType()){
+                            case Minus:
+                                return firstOp-secondOp;
+                            case Plus:
+                                return firstOp+secondOp;
+                            case Mult:
+                                return firstOp*secondOp;
+                            case Divide:
+                                return firstOp/secondOp;
+                        }
                     }
                 }
 
@@ -215,19 +214,21 @@ public class SemanticAnalysis {
     ///HELPERS ---------------------------------------------------------------
 
     public static void checkExpressions(TreeNode node) {
-        // If node expr's state is an I_EXPR
-        if (node.getState().getState() == State.stateType.I_EXPR) {
-            System.out.println(i_expr(node));
+        TreeNode grandchildNode = node.getChildren().get(0);
+
+        // If the grandchild expr's state is an I_EXPR
+        if (grandchildNode.getState().getState() == State.stateType.I_EXPR) {
+            System.out.println(i_expr(grandchildNode));
         }
 
-        // If node expr's state is a D_EXPR
-        else if (node.getState().getState() == State.stateType.D_EXPR) {
-            System.out.println(d_expr(node));
+        // If the grandchild expr's state is a D_EXPR
+        else if (grandchildNode.getState().getState() == State.stateType.D_EXPR) {
+            System.out.println(d_expr(grandchildNode));
         }
 
-        // If the node expr's state is a S_EXPR
+        // If the grandchild expr's state is a S_EXPR
         else {
-            System.out.println(s_expr(node));
+            System.out.println(s_expr(grandchildNode));
         }
     }
 }
