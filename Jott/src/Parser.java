@@ -313,7 +313,7 @@ public class Parser {
 
         if(isTokenSign(tokenStream.get(tokenIndex)))
         {
-            dblNode.addTreeNode(new State(State.stateType.SIGN));
+            dblNode.addTreeNode(new State(State.stateType.SIGN, tokenStream.get(tokenIndex)));
             tokenIndex++;
             foundSign = true;
         }
@@ -449,7 +449,7 @@ public class Parser {
 
         if(isTokenSign(tokenStream.get(tokenIndex)))
         {
-            intNode.addTreeNode(new State(State.stateType.SIGN));
+            intNode.addTreeNode(new State(State.stateType.SIGN, tokenStream.get(tokenIndex)));
             tokenIndex++;
             foundSign = true;
         }

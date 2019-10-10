@@ -4,7 +4,7 @@ String z = "foobar";
 String a = concat( z, "123" );
 print( x );
 print( y );
-print( x + + 3 );
+print( x + - 3 );
 print( y + 0.21 );
 print( z );
 print( concat( a, "456" ) );

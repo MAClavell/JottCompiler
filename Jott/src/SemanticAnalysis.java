@@ -40,18 +40,59 @@ public class SemanticAnalysis {
             asmt_stmt(node.getChildren().get(0));
         }
 
-        // Evaluates the <expr><end_statement>
+        // Evaluates the <expr><end_statement> -- doesn't actually change the state
         else{
-            // TODO implement this but skip the expr node into i_expr/d_expr/etc like in print
-            // TODO is this what we were looking for? See helper function
-            checkExpressions(node);
+
+            // If the expr is an ID
+            if(node.getChildren().get(0).getState().getState()== State.stateType.ID){
+                String id=node.getChildren().get(0).getToken().getTokenText();
+
+                // If it is a valid id
+                if(symbols.containsKey(id)){
+
+                    // If the id is not null
+                    if(symbols.get(id)!=null){
+                        symbols.get(id);
+                    }
+
+                    // If the id is null
+                    else{
+                        // TODO error
+                    }
+                }
+
+                // If this is an invalid id
+                else{
+                    // TODO error
+                }
+            }
+
+            // If the expr is an i/d/s_expr
+            else {
+                TreeNode exprNode=node.getChildren().get(0).getChildren().get(0);
+
+                // If the expression is an i_expr
+                if (exprNode.getState().getState() == State.stateType.I_EXPR) {
+                    i_expr(exprNode);
+                }
+
+                // If the expression is a d_expr
+                else if (exprNode.getState().getState() == State.stateType.D_EXPR) {
+                    d_expr(exprNode);
+                }
+
+                // If the expression is an s_expr
+                else {
+                    s_expr(exprNode);
+                }
+            }
         }
     }
 
     private static void print(TreeNode node){
 
         // Either going to be the stmt or id node
-        TreeNode childNode=node.getChildren().get(2);
+        TreeNode stmtNode=node.getChildren().get(2).getChildren().get(0);
 
         // If the child's expr's state is an id
         if(node.getChildren().get(2).getChildren().get(0).getState().getState() == State.stateType.ID){
@@ -64,7 +105,21 @@ public class SemanticAnalysis {
             }
         }
         else {
-            checkExpressions(childNode);
+
+            // If the statment in the print is an int expression
+            if(stmtNode.getState().getState()== State.stateType.I_EXPR){
+                System.out.println(i_expr(stmtNode));
+            }
+
+            // If the statement in the print is a double expression
+            else if(stmtNode.getState().getState()== State.stateType.D_EXPR){
+                System.out.println(d_expr(stmtNode));
+            }
+
+            // If the statement in the print is a String expression
+            else{
+                System.out.println(s_expr(stmtNode));
+            }
         }
     }
 
@@ -119,22 +174,21 @@ public class SemanticAnalysis {
         // If it is an id
         if(childNode.getState().getState()== State.stateType.ID){
             // Verifies it is defined, not null, and it is an integer
-            if(verifyIntID(node)){
+            if(verifyIntID(childNode)){
                 return (Integer)symbols.get(childNode.getToken().getTokenText()).getValue();
             }
             // TODO Error
         }
 
         // If it is an integer
-        else if(childNode.getState().getState()== State.stateType.INT ||
-                childNode.getState().getState()== State.stateType.SIGN){
-            int operand;
+        else if(childNode.getState().getState()== State.stateType.INT){
 
-            // If the first symbol is a sign
-            if(childNode.getState().getState()== State.stateType.SIGN){
-                operand=Integer.parseInt(node.getChildren().get(childNumber+1).getToken().getTokenText());
+            // If it contains  sign
+            if(childNode.getChildren().get(0).getState().getState()== State.stateType.SIGN){
+                int operand=Integer.parseInt(childNode.getChildren().get(1).getToken().getTokenText());
 
-                if(childNode.getToken().getTokenType()==TokenType.Minus){
+                // Gets the sign
+                if(childNode.getChildren().get(0).getToken().getTokenType()==TokenType.Minus){
                     operand*=-1;
                 }
                 return operand;
@@ -162,24 +216,11 @@ public class SemanticAnalysis {
         // There are multiple operators
         if(node.getChildren().size()>2) {
 
-            int sign;
-
-            // The first operator had a sign
-            if (node.getChildren().get(0).getState().getState() == State.stateType.SIGN) {
-                sign=2;
-
-            }
-
-            // The first operator did not have a sign
-            else {
-                sign=1;
-            }
-
             // Gets the second operand
-            int secondOp=parseIntOperand(node, sign+1);
+            int secondOp=parseIntOperand(node, 2);
 
             // Uses the sign number
-            switch(node.getChildren().get(sign).getToken().getTokenType()){
+            switch(node.getChildren().get(1).getToken().getTokenType()){
                 case Minus:
                     return firstOp-secondOp;
                 case Plus:
@@ -226,14 +267,13 @@ public class SemanticAnalysis {
         }
 
         // If the child node is a double
-        else if(childNode.getState().getState()== State.stateType.DBL||
-                childNode.getState().getState()== State.stateType.SIGN){
+        else if(childNode.getState().getState()== State.stateType.DBL){
 
             // If there is a sign as the first value
-            if(childNode.getState().getState()== State.stateType.SIGN){
-                double operand=Double.parseDouble(node.getChildren().get(childNumber+1).getToken().getTokenText());
+            if(childNode.getChildren().get(0).getState().getState()== State.stateType.SIGN){
+                double operand=Double.parseDouble(childNode.getChildren().get(1).getToken().getTokenText());
 
-                if(childNode.getToken().getTokenType()==TokenType.Minus){
+                if(childNode.getChildren().get(0).getToken().getTokenType()==TokenType.Minus){
                     operand*=-1;
                 }
 
@@ -260,18 +300,10 @@ public class SemanticAnalysis {
         // If there is more than one operand
         if(node.getChildren().size()>2){
 
-            // Where the +, -, /, * sign is
-            int sign=1;
-
-            // If there was a sign at the beginning
-            if(node.getChildren().get(0).getState().getState()== State.stateType.SIGN){
-                sign=2;
-            }
-
             // The value of the second operand
-            double secondOp=parseDoubleOperand(node, sign+1);
+            double secondOp=parseDoubleOperand(node, 2);
 
-            switch(node.getChildren().get(sign).getToken().getTokenType()){
+            switch(node.getChildren().get(1).getToken().getTokenType()){
                 case Minus:
                     return firstOp-secondOp;
                 case Plus:
@@ -311,7 +343,7 @@ public class SemanticAnalysis {
         if(childNode.getState().getState()== State.stateType.STR_LITERAL){
 
             // Return everything but the quotes
-            return (String)childNode.getToken().getTokenText().substring(1, -1);
+            return (String)childNode.getChildren().get(0).getToken().getTokenText().replace("\"", "");
         }
 
         // It is the concat function
@@ -343,26 +375,5 @@ public class SemanticAnalysis {
         System.err.println("Error on line "+node.getToken().getLineNum()+" column "+node.getToken().getColumnStart()+
                 ": "+message);
         System.exit(1);
-    }
-
-    ///HELPERS ---------------------------------------------------------------
-
-    public static void checkExpressions(TreeNode node) {
-        TreeNode grandchildNode = node.getChildren().get(0);
-
-        // If the grandchild expr's state is an I_EXPR
-        if (grandchildNode.getState().getState() == State.stateType.I_EXPR) {
-            System.out.println(i_expr(grandchildNode));
-        }
-
-        // If the grandchild expr's state is a D_EXPR
-        else if (grandchildNode.getState().getState() == State.stateType.D_EXPR) {
-            System.out.println(d_expr(grandchildNode));
-        }
-
-        // If the grandchild expr's state is a S_EXPR
-        else {
-            System.out.println(s_expr(grandchildNode));
-        }
     }
 }
