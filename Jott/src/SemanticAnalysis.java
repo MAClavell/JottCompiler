@@ -70,6 +70,37 @@ public class SemanticAnalysis {
 
     private static void asmt_stmt(TreeNode node){
 
+        TreeNode childNode=node.getChildren().get(0);
+        String id=node.getChildren().get(1).getToken().getTokenText();
+        TreeNode exprNode=node.getChildren().get(3);
+
+        // An Integer assignment statement
+        if(childNode.getToken().getTokenText().equals("Integer")){
+            //If this is a valid id
+            if(symbols.containsKey(id) && symbols.get(id).getType()== Symbol.variableType.INTEGER){
+                symbols.get(id).changeValue(i_expr(exprNode));
+            }
+
+            //TODO ERROR
+        }
+
+        // A Double assignment statement
+        else if(childNode.getToken().getTokenText().equals("Double")){
+            if(symbols.containsKey(id) && symbols.get(id).getType()== Symbol.variableType.DOUBLE){
+                symbols.get(id).changeValue(d_expr(exprNode));
+            }
+
+            //TODO ERROR
+        }
+
+        // A String asignment statement
+        else{
+            if(symbols.containsKey(id) && symbols.get(id).getType()== Symbol.variableType.STRING){
+                symbols.get(id).changeValue(s_expr(exprNode));
+            }
+
+            //TODO ERROR
+        }
     }
 
     private static boolean verifyIntID(TreeNode node){
