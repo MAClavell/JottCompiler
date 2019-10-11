@@ -57,13 +57,13 @@ public class SemanticAnalysis {
 
                     // If the id is null
                     else{
-                        // TODO error
+                        semanticError(node, "");
                     }
                 }
 
                 // If this is an invalid id
                 else{
-                    // TODO error
+                    semanticError(node, "");
                 }
             }
 
@@ -101,7 +101,7 @@ public class SemanticAnalysis {
                 System.out.println(childSymbol.getValue());
             }
             else{
-                //Error
+                semanticError(node, "");
             }
         }
         else {
@@ -136,7 +136,7 @@ public class SemanticAnalysis {
                 symbols.get(id).changeValue(i_expr(exprNode));
             }
 
-            //TODO ERROR
+            semanticError(childNode, "");
         }
 
         // A Double assignment statement
@@ -145,7 +145,7 @@ public class SemanticAnalysis {
                 symbols.get(id).changeValue(d_expr(exprNode));
             }
 
-            //TODO ERROR
+            semanticError(childNode, "");
         }
 
         // A String asignment statement
@@ -154,7 +154,7 @@ public class SemanticAnalysis {
                 symbols.get(id).changeValue(s_expr(exprNode));
             }
 
-            //TODO ERROR
+            semanticError(childNode, "");
         }
     }
 
@@ -177,7 +177,7 @@ public class SemanticAnalysis {
             if(verifyIntID(childNode)){
                 return (Integer)symbols.get(childNode.getToken().getTokenText()).getValue();
             }
-            // TODO Error
+            semanticError(childNode, "");
         }
 
         // If it is an integer
@@ -231,7 +231,7 @@ public class SemanticAnalysis {
                     return firstOp/secondOp;
             }
 
-            //TODO error
+            semanticError(node, "");
         }
 
         // It is just one operator
@@ -263,7 +263,7 @@ public class SemanticAnalysis {
                 return (Double)symbols.get(childNode.getToken().getTokenText()).getValue();
             }
 
-            //TODO error
+            semanticError(childNode, "");
         }
 
         // If the child node is a double
@@ -364,7 +364,7 @@ public class SemanticAnalysis {
                 return (String) symbols.get(childNode.getToken().getTokenText()).getValue();
             }
 
-            // TODO error
+            semanticError(childNode, "");
         }
 
         // Should never get to this point
@@ -377,3 +377,4 @@ public class SemanticAnalysis {
         System.exit(1);
     }
 }
+
