@@ -57,13 +57,15 @@ public class SemanticAnalysis {
 
                     // If the id is null
                     else{
-                        semanticError(node, "");
+                        LogError.log(LogError.ErrorType.RUNTIME, "Expected a valid ID, got " +
+                                        node.getToken().getTokenType()+" '"+node.getToken().getTokenText()+"'", node.getToken());
                     }
                 }
 
                 // If this is an invalid id
                 else{
-                    semanticError(node, "");
+                    LogError.log(LogError.ErrorType.SYNTAX, "Invalid ID, got " +
+                            node.getToken().getTokenType()+" '"+node.getToken().getTokenText()+"'", node.getToken());
                 }
             }
 
@@ -101,7 +103,8 @@ public class SemanticAnalysis {
                 System.out.println(childSymbol.getValue());
             }
             else{
-                semanticError(node, "");
+                LogError.log(LogError.ErrorType.SYNTAX, "Expected a valid ID, got " +
+                        node.getToken().getTokenType()+" '"+node.getToken().getTokenText()+"'", node.getToken());
             }
         }
         else {
@@ -136,7 +139,8 @@ public class SemanticAnalysis {
                 symbols.get(id).changeValue(i_expr(exprNode));
             }
 
-            semanticError(childNode, "");
+            LogError.log(LogError.ErrorType.SYNTAX, "Expected a valid ID, got " +
+                    node.getToken().getTokenType()+" '"+node.getToken().getTokenText()+"'", node.getToken());
         }
 
         // A Double assignment statement
@@ -145,7 +149,8 @@ public class SemanticAnalysis {
                 symbols.get(id).changeValue(d_expr(exprNode));
             }
 
-            semanticError(childNode, "");
+            LogError.log(LogError.ErrorType.SYNTAX, "Expected a valid ID, got " +
+                    node.getToken().getTokenType()+" '"+node.getToken().getTokenText()+"'", node.getToken());
         }
 
         // A String asignment statement
@@ -154,7 +159,8 @@ public class SemanticAnalysis {
                 symbols.get(id).changeValue(s_expr(exprNode));
             }
 
-            semanticError(childNode, "");
+            LogError.log(LogError.ErrorType.SYNTAX, "Expected a valid ID, got " +
+                    node.getToken().getTokenType()+" '"+node.getToken().getTokenText()+"'", node.getToken());
         }
     }
 
@@ -177,7 +183,8 @@ public class SemanticAnalysis {
             if(verifyIntID(childNode)){
                 return (Integer)symbols.get(childNode.getToken().getTokenText()).getValue();
             }
-            semanticError(childNode, "");
+            LogError.log(LogError.ErrorType.SYNTAX, "Expected a valid ID, got " +
+                    node.getToken().getTokenType()+" '"+node.getToken().getTokenText()+"'", node.getToken());
         }
 
         // If it is an integer
@@ -231,7 +238,8 @@ public class SemanticAnalysis {
                     return firstOp/secondOp;
             }
 
-            semanticError(node, "");
+            LogError.log(LogError.ErrorType.SYNTAX, "Expected a valid operand, got " +
+                    node.getToken().getTokenType()+" '"+node.getToken().getTokenText()+"'", node.getToken());
         }
 
         // It is just one operator
@@ -263,7 +271,8 @@ public class SemanticAnalysis {
                 return (Double)symbols.get(childNode.getToken().getTokenText()).getValue();
             }
 
-            semanticError(childNode, "");
+            LogError.log(LogError.ErrorType.SYNTAX, "Expected a valid ID, got " +
+                    node.getToken().getTokenType()+" '"+node.getToken().getTokenText()+"'", node.getToken());
         }
 
         // If the child node is a double
@@ -364,17 +373,12 @@ public class SemanticAnalysis {
                 return (String) symbols.get(childNode.getToken().getTokenText()).getValue();
             }
 
-            semanticError(childNode, "");
+            LogError.log(LogError.ErrorType.SYNTAX, "Expected a valid ID, got " +
+                    node.getToken().getTokenType()+" '"+node.getToken().getTokenText()+"'", node.getToken());
         }
 
         // Should never get to this point
         return "";
-    }
-
-    private static void semanticError(TreeNode node, String message){
-        System.err.println("Error on line "+node.getToken().getLineNum()+" column "+node.getToken().getColumnStart()+
-                ": "+message);
-        System.exit(1);
     }
 }
 
