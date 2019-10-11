@@ -18,7 +18,7 @@ public class FileInput {
             //The buffered reader to read the file
             BufferedReader bufferedReader = new BufferedReader(new FileReader(new File(fileName)));
             //A single line
-            String s;
+            String s="";
             //Reads the file line-by-line
             while((s=bufferedReader.readLine()) != null){
                 file += s + '\n';
