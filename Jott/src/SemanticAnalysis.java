@@ -196,7 +196,7 @@ public class SemanticAnalysis {
 
             // If there is no sign
             else{
-                return Integer.parseInt(childNode.getChildren().get(childNumber).getToken().getTokenText());
+                return Integer.parseInt(childNode.getChildren().get(0).getToken().getTokenText());
             }
         }
 

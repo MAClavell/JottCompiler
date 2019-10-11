@@ -18,13 +18,11 @@ public class FileInput {
             //The buffered reader to read the file
             BufferedReader bufferedReader = new BufferedReader(new FileReader(new File(fileName)));
             //A single line
-            int c;
+            String s;
             //Reads the file line-by-line
-            while((c=bufferedReader.read())!=-1){
-                file+=(char)c;
+            while((s=bufferedReader.readLine()) != null){
+                file += s + '\n';
             }
-            //Handle multi-platform line separators by just replacing them
-            file = file.replace(System.lineSeparator(), "\n");
         } catch (IOException e) {
             System.err.println("Error: File '"+fileName+"' not found");
             System.exit(1);
