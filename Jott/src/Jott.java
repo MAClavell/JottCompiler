@@ -18,21 +18,21 @@ public class Jott {
 
         //Read in the file
         String text = FileInput.readFile(args[0]);
-        System.out.println(text + '\n');
+        //System.out.println(text + '\n');
 
         //Setup error handler
         LogError.setupHandler(text.split("\n"), args[0]);
 
         //Create tokens from file
         ArrayList<Token> tokens = Scanner.tokenize(text, args[0]);
-        for (Token t : tokens) {
+        /*for (Token t : tokens) {
             System.out.println(t);
         }
-        System.out.println("");
+        System.out.println("");*/
 
         HashMap<String, Symbol> symbolTable = new HashMap<String, Symbol>();
         TreeNode root = Parser.parse(tokens, symbolTable);
-        System.out.println(root);
+        //System.out.println(root);
         SemanticAnalysis.output(root, symbolTable);
     }
 }

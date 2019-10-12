@@ -23,10 +23,20 @@ public class LogError {
     }
 
     public static void log(ErrorType eType, String message, Token eToken){
-        System.out.println(eType+": "+message+", "+"\""+
-                lines[eToken.getLineNum()-1] +
-                "\" (" +fileName+":"+eToken.getLineNum()+
-                ","+eToken.getColumnStart()+"-"+eToken.getColumnEnd()+")");
+        // If it is at the very end of the file
+        if(eToken.getLineNum()>=lines.length){
+            System.out.println(eType + ": " + message + ", " +
+                    "(" + fileName + ":" + eToken.getLineNum() +
+                    "," + eToken.getColumnStart() + "-" + eToken.getColumnEnd() + ")");
+        }
+
+        // Otherwise
+        else {
+            System.out.println(eType + ": " + message + ", " + "\"" +
+                    lines[eToken.getLineNum() - 1] +
+                    "\" (" + fileName + ":" + eToken.getLineNum() +
+                    "," + eToken.getColumnStart() + "-" + eToken.getColumnEnd() + ")");
+        }
         System.exit(1);
     }
 

@@ -307,7 +307,7 @@ public class SemanticAnalysis {
                         childNode.getToken().getTokenText() + "'", childNode.getToken());
             }
             else{
-                LogError.log(LogError.ErrorType.SYNTAX, "Expected an integer, got " +
+                LogError.log(LogError.ErrorType.SYNTAX, "Expected a double, got " +
                         childNode.getToken().getTokenType() + " '" +
                         childNode.getToken().getTokenText() + "'", childNode.getToken());
             }

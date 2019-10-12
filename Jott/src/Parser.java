@@ -125,12 +125,7 @@ public class Parser {
     }
 
     private static void expr(TreeNode node) {
-        if(tokenIndex>=tokenStream.size()){
-           LogError.log(LogError.ErrorType.SYNTAX, "Unexpected EoF",
-                   new Token("$$", TokenType.EoF, tokenStream.get(tokenIndex-1).getLineNum(),
-                           tokenStream.get(tokenIndex-1).getColumnEnd()+1,
-                           tokenStream.get(tokenIndex-1).getColumnEnd()+1));
-        }
+        checkSize();
 
         // The expression starting with a str_literal (in s_expr)
         // The expression starting with concat (in s_expr)
@@ -192,6 +187,8 @@ public class Parser {
         // Adds the print terminal
         node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
         tokenIndex++;
+
+        checkSize();
 
         // Adds the start parenthesis
         if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.StartParen)) {
@@ -735,5 +732,14 @@ public class Parser {
     {
         return tok.getTokenType()==TokenType.Minus ||
                 tok.getTokenType()==TokenType.Plus;
+    }
+
+    private static void checkSize(){
+        if(tokenIndex>=tokenStream.size()){
+            LogError.log(LogError.ErrorType.SYNTAX, "Unexpected EoF",
+                    new Token("$$", TokenType.EoF, tokenStream.get(tokenIndex-1).getLineNum(),
+                            tokenStream.get(tokenIndex-1).getColumnEnd()+1,
+                            tokenStream.get(tokenIndex-1).getColumnEnd()+1));
+        }
     }
 }
