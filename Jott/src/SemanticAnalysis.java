@@ -138,9 +138,11 @@ public class SemanticAnalysis {
             if(symbols.containsKey(id) && symbols.get(id).getType()== Symbol.variableType.INTEGER){
                 symbols.get(id).changeValue(i_expr(exprNode));
             }
-
-            LogError.log(LogError.ErrorType.SYNTAX, "Expected a valid ID, got " +
-                    node.getToken().getTokenType()+" '"+node.getToken().getTokenText()+"'", node.getToken());
+            else {
+                LogError.log(LogError.ErrorType.SYNTAX, "Expected a valid ID, got " +
+                        node.getChildren().get(1).getToken().getTokenType() + " '" +
+                        node.getChildren().get(1).getToken().getTokenText() + "'", node.getChildren().get(1).getToken());
+            }
         }
 
         // A Double assignment statement
@@ -149,8 +151,11 @@ public class SemanticAnalysis {
                 symbols.get(id).changeValue(d_expr(exprNode));
             }
 
-            LogError.log(LogError.ErrorType.SYNTAX, "Expected a valid ID, got " +
-                    node.getToken().getTokenType()+" '"+node.getToken().getTokenText()+"'", node.getToken());
+            else {
+                LogError.log(LogError.ErrorType.SYNTAX, "Expected a valid ID, got " +
+                        node.getChildren().get(1).getToken().getTokenType() + " '" +
+                        node.getChildren().get(1).getToken().getTokenText() + "'", node.getToken());
+            }
         }
 
         // A String asignment statement
@@ -158,9 +163,11 @@ public class SemanticAnalysis {
             if(symbols.containsKey(id) && symbols.get(id).getType()== Symbol.variableType.STRING){
                 symbols.get(id).changeValue(s_expr(exprNode));
             }
-
-            LogError.log(LogError.ErrorType.SYNTAX, "Expected a valid ID, got " +
-                    node.getToken().getTokenType()+" '"+node.getToken().getTokenText()+"'", node.getToken());
+            else {
+                LogError.log(LogError.ErrorType.SYNTAX, "Expected a valid ID, got " +
+                        node.getChildren().get(1).getToken().getTokenType() + " '" +
+                        node.getChildren().get(1).getToken().getTokenText() + "'", node.getChildren().get(1).getToken());
+            }
         }
     }
 
@@ -183,8 +190,21 @@ public class SemanticAnalysis {
             if(verifyIntID(childNode)){
                 return (Integer)symbols.get(childNode.getToken().getTokenText()).getValue();
             }
-            LogError.log(LogError.ErrorType.SYNTAX, "Expected a valid ID, got " +
-                    node.getToken().getTokenType()+" '"+node.getToken().getTokenText()+"'", node.getToken());
+            if(!symbols.containsKey(childNode.getToken().getTokenText())) {
+                LogError.log(LogError.ErrorType.SYNTAX, "Expected a valid ID, got " +
+                        childNode.getToken().getTokenType() + " '" +
+                        childNode.getToken().getTokenText() + "'", childNode.getToken());
+            }
+            else if(symbols.get(childNode.getToken().getTokenText()) == null){
+                LogError.log(LogError.ErrorType.SYNTAX, "Can not do operations on a null operand, got " +
+                        childNode.getToken().getTokenType() + " '" +
+                        childNode.getToken().getTokenText() + "'", childNode.getToken());
+            }
+            else{
+                LogError.log(LogError.ErrorType.SYNTAX, "Expected an integer, got " +
+                        childNode.getToken().getTokenType() + " '" +
+                        childNode.getToken().getTokenText() + "'", childNode.getToken());
+            }
         }
 
         // If it is an integer
@@ -235,11 +255,17 @@ public class SemanticAnalysis {
                 case Mult:
                     return firstOp*secondOp;
                 case Divide:
+                    if(secondOp==0){
+                        LogError.log(LogError.ErrorType.SYNTAX, "Divide by zero ", getLeftMostToken(node));
+                    }
                     return firstOp/secondOp;
+                case Power:
+                    return (int) (Math.pow(firstOp, secondOp));
             }
 
             LogError.log(LogError.ErrorType.SYNTAX, "Expected a valid operand, got " +
-                    node.getToken().getTokenType()+" '"+node.getToken().getTokenText()+"'", node.getToken());
+                    node.getChildren().get(1).getToken().getTokenType()+" '"+
+                    node.getChildren().get(1).getToken().getTokenText()+"'", node.getChildren().get(1).getToken());
         }
 
         // It is just one operator
@@ -321,6 +347,8 @@ public class SemanticAnalysis {
                     return firstOp*secondOp;
                 case Divide:
                     return firstOp/secondOp;
+                case Power:
+                    return Math.pow(firstOp, secondOp);
             }
 
         }
@@ -379,6 +407,21 @@ public class SemanticAnalysis {
 
         // Should never get to this point
         return "";
+    }
+
+    private static Token getLeftMostToken(TreeNode node){
+        TreeNode current=node;
+        while(current.getToken()==null){
+            current=current.getChildren().get(0);
+        }
+        return current.getToken();
+    }
+    private static Token getRightMostToken(TreeNode node){
+        TreeNode current=node;
+        while(current.getToken()==null){
+            current=current.getChildren().get(current.getChildren().size()-1);
+        }
+        return current.getToken();
     }
 }
 

@@ -125,6 +125,13 @@ public class Parser {
     }
 
     private static void expr(TreeNode node) {
+        if(tokenIndex>=tokenStream.size()){
+           LogError.log(LogError.ErrorType.SYNTAX, "Unexpected EoF",
+                   new Token("$$", TokenType.EoF, tokenStream.get(tokenIndex-1).getLineNum(),
+                           tokenStream.get(tokenIndex-1).getColumnEnd()+1,
+                           tokenStream.get(tokenIndex-1).getColumnEnd()+1));
+        }
+
         // The expression starting with a str_literal (in s_expr)
         // The expression starting with concat (in s_expr)
         // The expression starting with charAt (in s_expr)
