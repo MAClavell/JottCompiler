@@ -57,7 +57,7 @@ public class SemanticAnalysis {
 
                     // If the id is null
                     else{
-                        LogError.log(LogError.ErrorType.RUNTIME, "Expected a valid ID, got " +
+                        LogError.log(LogError.ErrorType.RUNTIME, "Expected a non-null ID, got " +
                                         node.getToken().getTokenType()+" '"+node.getToken().getTokenText()+"'", node.getToken());
                     }
                 }
@@ -263,7 +263,7 @@ public class SemanticAnalysis {
                     return (int) (Math.pow(firstOp, secondOp));
             }
 
-            LogError.log(LogError.ErrorType.SYNTAX, "Expected a valid operand, got " +
+            LogError.log(LogError.ErrorType.SYNTAX, "Expected a valid operator, got " +
                     node.getChildren().get(1).getToken().getTokenType()+" '"+
                     node.getChildren().get(1).getToken().getTokenText()+"'", node.getChildren().get(1).getToken());
         }
@@ -302,12 +302,12 @@ public class SemanticAnalysis {
                         childNode.getToken().getTokenText() + "'", childNode.getToken());
             }
             else if(symbols.get(childNode.getToken().getTokenText()) == null){
-                LogError.log(LogError.ErrorType.SYNTAX, "Can not do operations on a null operand, got " +
+                LogError.log(LogError.ErrorType.RUNTIME, "Can not do operations on a null operand, got " +
                         childNode.getToken().getTokenType() + " '" +
                         childNode.getToken().getTokenText() + "'", childNode.getToken());
             }
             else{
-                LogError.log(LogError.ErrorType.SYNTAX, "Expected a double, got " +
+                LogError.log(LogError.ErrorType.RUNTIME, "Expected a double, got " +
                         childNode.getToken().getTokenType() + " '" +
                         childNode.getToken().getTokenText() + "'", childNode.getToken());
             }
@@ -416,8 +416,21 @@ public class SemanticAnalysis {
                 return (String) symbols.get(childNode.getToken().getTokenText()).getValue();
             }
 
-            LogError.log(LogError.ErrorType.SYNTAX, "Expected a valid ID, got " +
-                    node.getToken().getTokenType()+" '"+node.getToken().getTokenText()+"'", node.getToken());
+            if(!symbols.containsKey(childNode.getToken().getTokenText())) {
+                LogError.log(LogError.ErrorType.SYNTAX, "Expected a valid ID, got " +
+                        childNode.getToken().getTokenType() + " '" +
+                        childNode.getToken().getTokenText() + "'", childNode.getToken());
+            }
+            else if(symbols.get(childNode.getToken().getTokenText()) == null){
+                LogError.log(LogError.ErrorType.RUNTIME, "Can not do operations on a null operand, got " +
+                        childNode.getToken().getTokenType() + " '" +
+                        childNode.getToken().getTokenText() + "'", childNode.getToken());
+            }
+            else{
+                LogError.log(LogError.ErrorType.RUNTIME, "Expected a string, got " +
+                        childNode.getToken().getTokenType() + " '" +
+                        childNode.getToken().getTokenText() + "'", childNode.getToken());
+            }
         }
 
         // Should never get to this point
