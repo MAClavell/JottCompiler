@@ -296,9 +296,21 @@ public class SemanticAnalysis {
             if(verifyDoubleID(childNode)){
                 return (Double)symbols.get(childNode.getToken().getTokenText()).getValue();
             }
-
-            LogError.log(LogError.ErrorType.SYNTAX, "Expected a valid ID, got " +
-                    node.getToken().getTokenType()+" '"+node.getToken().getTokenText()+"'", node.getToken());
+            if(!symbols.containsKey(childNode.getToken().getTokenText())) {
+                LogError.log(LogError.ErrorType.SYNTAX, "Expected a valid ID, got " +
+                        childNode.getToken().getTokenType() + " '" +
+                        childNode.getToken().getTokenText() + "'", childNode.getToken());
+            }
+            else if(symbols.get(childNode.getToken().getTokenText()) == null){
+                LogError.log(LogError.ErrorType.SYNTAX, "Can not do operations on a null operand, got " +
+                        childNode.getToken().getTokenType() + " '" +
+                        childNode.getToken().getTokenText() + "'", childNode.getToken());
+            }
+            else{
+                LogError.log(LogError.ErrorType.SYNTAX, "Expected an integer, got " +
+                        childNode.getToken().getTokenType() + " '" +
+                        childNode.getToken().getTokenText() + "'", childNode.getToken());
+            }
         }
 
         // If the child node is a double
@@ -346,6 +358,9 @@ public class SemanticAnalysis {
                 case Mult:
                     return firstOp*secondOp;
                 case Divide:
+                    if(secondOp==0){
+                        LogError.log(LogError.ErrorType.SYNTAX, "Divide by zero ", getLeftMostToken(node));
+                    }
                     return firstOp/secondOp;
                 case Power:
                     return Math.pow(firstOp, secondOp);
