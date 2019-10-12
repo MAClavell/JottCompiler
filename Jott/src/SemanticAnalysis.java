@@ -256,7 +256,7 @@ public class SemanticAnalysis {
                     return firstOp*secondOp;
                 case Divide:
                     if(secondOp==0){
-                        LogError.log(LogError.ErrorType.SYNTAX, "Divide by zero ", getLeftMostToken(node));
+                        LogError.log(LogError.ErrorType.RUNTIME, "Divide by zero ", getLeftMostToken(node));
                     }
                     return firstOp/secondOp;
                 case Power:
@@ -359,7 +359,7 @@ public class SemanticAnalysis {
                     return firstOp*secondOp;
                 case Divide:
                     if(secondOp==0){
-                        LogError.log(LogError.ErrorType.SYNTAX, "Divide by zero ", getLeftMostToken(node));
+                        LogError.log(LogError.ErrorType.RUNTIME, "Divide by zero ", getLeftMostToken(node));
                     }
                     return firstOp/secondOp;
                 case Power:
