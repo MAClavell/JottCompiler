@@ -3,7 +3,8 @@
  */
 enum TokenType {
     String, ID, Integer, Double, Assign, EndStmt, StartParen, EndParen,
-    Power, Divide, Mult, Minus, Plus, Comma, EoF;
+    Power, Divide, Mult, Minus, Plus, Comma, StartBlk, EndBlk, Eq, NotEq,
+    Greater, GreaterEq, Less, LessEq, EoF;
 }
 
 /**

@@ -157,7 +157,16 @@ public class Scanner {
                 break;
 
             case Assign:
-                return 2; //can only contain 1 character
+                if(c == '=')
+                {
+                    if(textBuilder.length() == 1)
+                    {
+                        type = TokenType.Eq; //transition to a double
+                        return 2;
+                    }
+                    return 0;
+                }
+                break;
 
             case EndStmt:
                 return 2; //can only contain 1 character
@@ -189,6 +198,39 @@ public class Scanner {
 
             case Comma:
                 return 2; //can only contain 1 character
+
+            case StartBlk:
+                return 2; //can only contain 1 character
+
+            case EndBlk:
+                return 2; //can only contain 1 character
+
+            case NotEq:
+                if(c == '=' && textBuilder.length() == 1)
+                    return 2;
+                else if (c == '!' && textBuilder.length() == 0)
+                    return 0;
+                break;
+
+            case Greater:
+                if(c == '=' && textBuilder.length() == 1)
+                {
+                    type = TokenType.GreaterEq; //transition to >=
+                    return 2;
+                }
+                else if (c == '>' && textBuilder.length() == 0)
+                    return 0;
+                break;
+
+            case Less:
+                if(c == '=' && textBuilder.length() == 1)
+                {
+                    type = TokenType.LessEq; //transition to <=
+                    return 2;
+                }
+                else if (c == '<' && textBuilder.length() == 0)
+                    return 0;
+                break;
 
             case EoF:
                 return 2;
@@ -230,6 +272,16 @@ public class Scanner {
                 return TokenType.Plus;
             case ',':
                 return TokenType.Comma;
+            case '{':
+                return TokenType.StartBlk;
+            case '}':
+                return TokenType.EndBlk;
+            case '!':
+                return TokenType.NotEq;
+            case '>':
+                return TokenType.Greater;
+            case '<':
+                return TokenType.Less;
             case '\0':
                 return TokenType.EoF;
             default:

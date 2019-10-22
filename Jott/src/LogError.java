@@ -24,7 +24,7 @@ public class LogError {
 
     public static void log(ErrorType eType, String message, Token eToken){
         // If it is at the very end of the file
-        if(eToken.getLineNum()>=lines.length){
+        if(eToken.getLineNum()>lines.length){
             System.out.println(eType + ": " + message + ", " +
                     "(" + fileName + ":" + eToken.getLineNum() +
                     "," + eToken.getColumnStart() + "-" + eToken.getColumnEnd() + ")");
