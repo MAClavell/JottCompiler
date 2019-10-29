@@ -16,6 +16,10 @@ public class Parser {
 
     // Strings representing the different tokens for Strings
     public final static String PRINT="print";
+    public final static String IF="if";
+    public final static String ELSE="else";
+    public final static String WHILE="while";
+    public final static String FOR="for";
     public final static String CONCAT="concat";
     public final static String CHARAT="charAt";
     public final static String DOUBLE="Double";
@@ -87,10 +91,81 @@ public class Parser {
                 print(node.addTreeNode(new State(State.stateType.PRINT)));
             }
 
+            // The if statement
+            else if(tokenStream.get(tokenIndex).getTokenText().equals(IF)){
+                node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
+                tokenIndex++;
+                node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex)));
+                tokenIndex++;
+                expr(node.addTreeNode(new State(State.stateType.EXPR)));
+                node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex)));
+                tokenIndex++;
+                node.addTreeNode(new State(State.stateType.START_BLCK, tokenStream.get(tokenIndex)));
+                tokenIndex++;
+                b_stmt_list(node.addTreeNode(new State(State.stateType.B_STMT_LIST)));
+                node.addTreeNode(new State(State.stateType.END_BLCK, tokenStream.get(tokenIndex)));
+                tokenIndex++;
+
+                if(tokenStream.get(tokenIndex).getTokenText().equals(ELSE)){
+                    node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
+                    tokenIndex++;
+                    node.addTreeNode(new State(State.stateType.START_BLCK, tokenStream.get(tokenIndex)));
+                    tokenIndex++;
+                    b_stmt_list(node.addTreeNode(new State(State.stateType.B_STMT_LIST)));
+                    node.addTreeNode(new State(State.stateType.END_BLCK, tokenStream.get(tokenIndex)));
+                    tokenIndex++;
+                }
+            }
+
+            // The while statement
+            else if(tokenStream.get(tokenIndex).getTokenText().equals(WHILE)){
+                node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
+                tokenIndex++;
+                node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex)));
+                tokenIndex++;
+                i_expr(node.addTreeNode(new State(State.stateType.I_EXPR)), false);
+                node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex)));
+                tokenIndex++;
+                node.addTreeNode(new State(State.stateType.START_BLCK, tokenStream.get(tokenIndex)));
+                tokenIndex++;
+                b_stmt_list(node.addTreeNode(new State(State.stateType.B_STMT_LIST)));
+                node.addTreeNode(new State(State.stateType.END_BLCK, tokenStream.get(tokenIndex)));
+                tokenIndex++;
+            }
+
+            // The for statement
+            else if(tokenStream.get(tokenIndex).getTokenText().equals(FOR)){
+                node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
+                tokenIndex++;
+                node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex)));
+                tokenIndex++;
+                asmt(node.addTreeNode(new State(State.stateType.ASMT)));
+                i_expr(node.addTreeNode(new State(State.stateType.I_EXPR)), false);
+                node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex)));
+                tokenIndex++;
+                r_asmt(node.addTreeNode(new State(State.stateType.R_ASMT)));
+                node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex)));
+                tokenIndex++;
+                node.addTreeNode(new State(State.stateType.START_BLCK, tokenStream.get(tokenIndex)));
+                tokenIndex++;
+                b_stmt_list(node.addTreeNode(new State(State.stateType.B_STMT_LIST)));
+                node.addTreeNode(new State(State.stateType.END_BLCK, tokenStream.get(tokenIndex)));
+                tokenIndex++;
+
+            }
+
             // The assignment stmt
             else if (tokenStream.get(tokenIndex).getTokenType().equals(TokenType.ID) &&
                     tokenIndex+2 < tokenStream.size() && tokenStream.get(tokenIndex+2).getTokenType()==TokenType.Assign) {
                 asmt(node.addTreeNode(new State(State.stateType.ASMT)));
+            }
+
+            // The reassignment stmt
+            else if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.ID)&&
+                    tokenIndex+1<tokenStream.size()&&tokenStream.get(tokenIndex+1).getTokenType()==TokenType.Assign){
+                r_asmt(node.addTreeNode(new State(State.stateType.R_ASMT)));
+                node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex)));
+                tokenIndex++;
             }
 
             // The expression statement
@@ -122,6 +197,39 @@ public class Parser {
         else{
             LogError.log(LogError.ErrorType.SYNTAX, "Invalid statement" , tokenStream.get(tokenIndex));
         }
+    }
+
+    private static void b_stmt_list(TreeNode node){
+
+    }
+
+    private static void b_stmt(TreeNode node){
+        if(tokenStream.get(tokenIndex).getTokenText().equals(PRINT)){
+            print(node.addTreeNode(new State(State.stateType.PRINT)));
+        }
+
+        else if(tokenStream.get(tokenIndex+1).getTokenType()==TokenType.Assign){
+            r_asmt(node.addTreeNode(new State(State.stateType.R_ASMT)));
+            if(tokenStream.get(tokenIndex).getTokenType()==TokenType.EndStmt) {
+                node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex)));
+            }
+            else{
+                LogError.log(LogError.ErrorType.SYNTAX, "Invalid statement", tokenStream.get(tokenIndex));
+            }
+            tokenIndex++;
+        }
+
+        else{
+            expr(node.addTreeNode(new State(State.stateType.EXPR)));
+        }
+    }
+
+    private static void r_asmt(TreeNode node){
+        node.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex)));
+        tokenIndex++;
+        node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
+        tokenIndex++;
+        expr(node.addTreeNode(new State(State.stateType.EXPR)));
     }
 
     private static void expr(TreeNode node) {

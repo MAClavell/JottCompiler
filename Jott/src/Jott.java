@@ -30,9 +30,9 @@ public class Jott {
         }
         System.out.println("");
 
-        HashMap<String, Symbol> symbolTable = new HashMap<String, Symbol>();
-        TreeNode root = Parser.parse(tokens, symbolTable);
-        //System.out.println(root);
-        SemanticAnalysis.output(root, symbolTable);
+//        HashMap<String, Symbol> symbolTable = new HashMap<String, Symbol>();
+//        TreeNode root = Parser.parse(tokens, symbolTable);
+//        //System.out.println(root);
+//        SemanticAnalysis.output(root, symbolTable);
     }
 }
