@@ -236,35 +236,33 @@ public class Parser {
         checkSize();
 
         // The expression whose 2nd or 3rd token is a relational op
-        if (isTokenRelational(tokenStream.get(tokenIndex + 1).getTokenType()) ||
-                isTokenRelational(tokenStream.get(tokenIndex + 2).getTokenType())) {
-            // if string
-            // if int
-            // if double
+        if (isTokenTypeRelational(tokenIndex + 1) ||
+                isTokenTypeRelational(tokenIndex + 2)) {
+            if(isTokenTypeString(tokenIndex)) {
+                // STRING REL OP
+            }
+            else if(isTokenTypeInteger(tokenIndex)) {
+                // INT REL OP
+            }
+            else if(isTokenTypeDouble(tokenIndex)) {
+                // DOUBLE REL OP
+            }
         }
 
         // The expression starting with a str_literal (in s_expr)
         // The expression starting with concat (in s_expr)
         // The expression starting with charAt (in s_expr)
-        else if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.String) ||
-           tokenStream.get(tokenIndex).getTokenText().equals(CONCAT) ||
-           tokenStream.get(tokenIndex).getTokenText().equals(CHARAT)) {
+        else if(isTokenTypeString(tokenIndex)) {
             s_expr(node.addTreeNode(new State(State.stateType.S_EXPR)));
         }
 
         // If the first token is an integer or a -integer/+integer (in i_expr)
-        else if(tokenStream.get(tokenIndex).getTokenType()==TokenType.Integer ||
-                ((tokenStream.get(tokenIndex).getTokenType()==TokenType.Minus ||
-                    tokenStream.get(tokenIndex).getTokenType()==TokenType.Plus) &&
-                tokenStream.get(tokenIndex+1).getTokenType()==TokenType.Integer)){
+        else if(isTokenTypeInteger(tokenIndex)){
             i_expr(node, false);
         }
 
         // If the first token is a double or a -double/+double (in d_expr)
-        else if(tokenStream.get(tokenIndex).getTokenType()==TokenType.Double ||
-                ((tokenStream.get(tokenIndex).getTokenType()==TokenType.Minus ||
-                    tokenStream.get(tokenIndex).getTokenType()==TokenType.Plus) &&
-                tokenStream.get(tokenIndex+1).getTokenType()==TokenType.Double)){
+        else if(isTokenTypeDouble(tokenIndex)){
             d_expr(node, false);
         }
 
@@ -299,12 +297,36 @@ public class Parser {
                     tokenStream.get(tokenIndex));
     }
 
-    private static boolean isTokenRelational(TokenType tType) {
-        if (tType == TokenType.Eq || tType == TokenType.NotEq || tType == TokenType.Greater ||
-                tType == TokenType.GreaterEq || tType == TokenType.Less || tType == TokenType.LessEq) {
+    private static boolean isTokenTypeRelational(int index) {
+        if (tokenStream.get(index).getTokenType() == TokenType.Eq ||
+                tokenStream.get(index).getTokenType() == TokenType.NotEq ||
+                tokenStream.get(index).getTokenType() == TokenType.Greater ||
+                tokenStream.get(index).getTokenType() == TokenType.GreaterEq ||
+                tokenStream.get(index).getTokenType() == TokenType.Less ||
+                tokenStream.get(index).getTokenType() == TokenType.LessEq) {
             return true;
         }
         return false;
+    }
+
+    private static boolean isTokenTypeString(int index) {
+        return (tokenStream.get(index).getTokenType().equals(TokenType.String) ||
+                tokenStream.get(index).getTokenText().equals(CONCAT) ||
+                tokenStream.get(index).getTokenText().equals(CHARAT));
+    }
+
+    private static boolean isTokenTypeInteger(int index) {
+        return (tokenStream.get(index).getTokenType()==TokenType.Integer ||
+                ((tokenStream.get(index).getTokenType()==TokenType.Minus ||
+                        tokenStream.get(index).getTokenType()==TokenType.Plus) &&
+                        tokenStream.get(index+1).getTokenType()==TokenType.Integer));
+    }
+
+    private static boolean isTokenTypeDouble(int index) {
+        return (tokenStream.get(index).getTokenType()==TokenType.Double ||
+                ((tokenStream.get(index).getTokenType()==TokenType.Minus ||
+                        tokenStream.get(index).getTokenType()==TokenType.Plus) &&
+                        tokenStream.get(index+1).getTokenType()==TokenType.Double));
     }
 
     private static void print(TreeNode node) {
