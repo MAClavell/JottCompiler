@@ -298,15 +298,12 @@ public class Parser {
     }
 
     private static boolean isTokenTypeRelational(int index) {
-        if (tokenStream.get(index).getTokenType() == TokenType.Eq ||
+        return (tokenStream.get(index).getTokenType() == TokenType.Eq ||
                 tokenStream.get(index).getTokenType() == TokenType.NotEq ||
                 tokenStream.get(index).getTokenType() == TokenType.Greater ||
                 tokenStream.get(index).getTokenType() == TokenType.GreaterEq ||
                 tokenStream.get(index).getTokenType() == TokenType.Less ||
-                tokenStream.get(index).getTokenType() == TokenType.LessEq) {
-            return true;
-        }
-        return false;
+                tokenStream.get(index).getTokenType() == TokenType.LessEq);
     }
 
     private static boolean isTokenTypeString(int index) {
