@@ -235,28 +235,29 @@ public class Parser {
     private static void expr(TreeNode node) {
         checkSize();
 
+        // The expression whose 2nd or 3rd token is a relational op
+        if (isTokenRelational(tokenStream.get(tokenIndex + 1).getTokenType()) ||
+                isTokenRelational(tokenStream.get(tokenIndex + 2).getTokenType())) {
+
+
+        }
+
         // The expression starting with a str_literal (in s_expr)
         // The expression starting with concat (in s_expr)
         // The expression starting with charAt (in s_expr)
-        if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.String) ||
+        else if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.String) ||
            tokenStream.get(tokenIndex).getTokenText().equals(CONCAT) ||
            tokenStream.get(tokenIndex).getTokenText().equals(CHARAT)) {
             s_expr(node.addTreeNode(new State(State.stateType.S_EXPR)));
         }
 
         // If the first token is an integer or a -integer/+integer (in i_expr)
-        else if(tokenStream.get(tokenIndex).getTokenType()==TokenType.Integer ||
-                ((tokenStream.get(tokenIndex).getTokenType()==TokenType.Minus ||
-                    tokenStream.get(tokenIndex).getTokenType()==TokenType.Plus) &&
-                tokenStream.get(tokenIndex+1).getTokenType()==TokenType.Integer)){
+        else if(isTokenInteger()){
             i_expr(node, false);
         }
 
         // If the first token is a double or a -double/+double (in d_expr)
-        else if(tokenStream.get(tokenIndex).getTokenType()==TokenType.Double ||
-                ((tokenStream.get(tokenIndex).getTokenType()==TokenType.Minus ||
-                    tokenStream.get(tokenIndex).getTokenType()==TokenType.Plus) &&
-                tokenStream.get(tokenIndex+1).getTokenType()==TokenType.Double)){
+        else if(isTokenBoolean()){
             d_expr(node, false);
         }
 
@@ -289,6 +290,27 @@ public class Parser {
         else LogError.log(LogError.ErrorType.SYNTAX, "Expected an Expression, got " +
                     tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
                     tokenStream.get(tokenIndex));
+    }
+
+    private static boolean isTokenRelational(TokenType tType) {
+        if (tType == TokenType.Eq || tType == TokenType.NotEq || tType == TokenType.Greater ||
+                tType == TokenType.GreaterEq || tType == TokenType.Less || tType == TokenType.LessEq) {
+            return true;
+        }
+        return false;
+    }
+
+    private static boolean isTokenInteger() {
+        return tokenStream.get(tokenIndex).getTokenType().equals(TokenType.String) ||
+                tokenStream.get(tokenIndex).getTokenText().equals(CONCAT) ||
+                tokenStream.get(tokenIndex).getTokenText().equals(CHARAT);
+    }
+
+    private static boolean isTokenBoolean() {
+        return (tokenStream.get(tokenIndex).getTokenType()==TokenType.Double ||
+                ((tokenStream.get(tokenIndex).getTokenType()==TokenType.Minus ||
+                        tokenStream.get(tokenIndex).getTokenType()==TokenType.Plus) &&
+                        tokenStream.get(tokenIndex+1).getTokenType()==TokenType.Double));
     }
 
     private static void print(TreeNode node) {
