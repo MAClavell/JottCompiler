@@ -461,7 +461,7 @@ public class Parser {
         //Check first parameter to see if it's an ID (skip over if we are nested)
         if(isNestedExpr || tokenStream.get(tokenIndex).getTokenType().equals(TokenType.ID)){
             //Lookahead to see if there's an operator
-            if(isTokenOp(tokenStream.get(tokenIndex+1))) {
+            if(isTokenOp(tokenStream.get(tokenIndex+1)) || isTokenRelOp(tokenStream.get(tokenIndex+1))) {
                 //Since this IS a math expression, add the ID as a SEPARATE D_EXPR
                 if(!isNestedExpr) {
                     TreeNode idNode = parentExprNode.addTreeNode(new State(State.stateType.D_EXPR));
@@ -485,7 +485,7 @@ public class Parser {
         //Automatically adds integer to the node if one exists
         else if(isNestedExpr || dbl(parentExprNode)) {
             //See if there's an operator
-            if(isTokenOp(tokenStream.get(tokenIndex))) {
+            if(isTokenOp(tokenStream.get(tokenIndex)) || isTokenRelOp(tokenStream.get(tokenIndex))) {
                 //IS a math expression
                 //Find the third component of the D_EXPR
                 return d_exprThirdComponent(node, parentExprNode);
@@ -529,7 +529,7 @@ public class Parser {
         if(foundDouble || foundID)
         {
             //Check if there is ANOTHER operator, meaning we are nested
-            if (isTokenOp(tokenStream.get(tokenIndex)))
+            if (isTokenOp(tokenStream.get(tokenIndex)) || isTokenRelOp(tokenStream.get(tokenIndex)))
             {
                 //Create and run nested expression
                 TreeNode res = d_expr(node, true);
@@ -597,7 +597,7 @@ public class Parser {
         //Check first parameter to see if it's an ID (skip over if we are nested)
         if(isNestedExpr || tokenStream.get(tokenIndex).getTokenType().equals(TokenType.ID)){
             //Lookahead to see if there's an operator
-            if(isTokenOp(tokenStream.get(tokenIndex+1))) {
+            if(isTokenOp(tokenStream.get(tokenIndex+1)) || isTokenRelOp(tokenStream.get(tokenIndex+1))) {
                 //Since this IS a math expression, add the ID as a SEPARATE I_EXPR
                 if(!isNestedExpr) {
                     TreeNode idNode = parentExprNode.addTreeNode(new State(State.stateType.I_EXPR));
@@ -621,7 +621,7 @@ public class Parser {
         //Automatically adds integer to the node if one exists
         else if(isNestedExpr || integer(parentExprNode)) {
             //See if there's an operator
-            if(isTokenOp(tokenStream.get(tokenIndex))) {
+            if(isTokenOp(tokenStream.get(tokenIndex)) || isTokenRelOp(tokenStream.get(tokenIndex))) {
                 //IS a math expression
                 //Find the third component of the I_EXPR
                 return i_exprThirdComponent(node, parentExprNode);
@@ -665,7 +665,7 @@ public class Parser {
         if(foundInteger || foundID)
         {
             //Check if there is ANOTHER operator, meaning we are nested
-            if (isTokenOp(tokenStream.get(tokenIndex)))
+            if (isTokenOp(tokenStream.get(tokenIndex)) || isTokenRelOp(tokenStream.get(tokenIndex)))
             {
                 //Create and run nested expression
                 TreeNode res = i_expr(node, true);
@@ -829,6 +829,21 @@ public class Parser {
                 tok.getTokenType()==TokenType.Divide ||
                 tok.getTokenType()==TokenType.Power;
 
+    }
+    
+    /**
+     * Check if a token is any of the relational operators
+     * @param tok Token to check
+     * @return boolean if it is an relational operator token
+     */
+    private static boolean isTokenRelOp(Token tok)
+    {
+        return tok.getTokenType()==TokenType.Eq ||
+                tok.getTokenType()==TokenType.NotEq ||
+                tok.getTokenType()==TokenType.Greater ||
+                tok.getTokenType()==TokenType.GreaterEq ||
+                tok.getTokenType()==TokenType.Less ||
+                tok.getTokenType()==TokenType.LessEq;
     }
 
     /**
