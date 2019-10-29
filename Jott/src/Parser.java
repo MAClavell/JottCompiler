@@ -291,6 +291,14 @@ public class Parser {
                     tokenStream.get(tokenIndex));
     }
 
+    private static boolean isTokenRelational(TokenType tType) {
+        if (tType == TokenType.Eq || tType == TokenType.NotEq || tType == TokenType.Greater ||
+                tType == TokenType.GreaterEq || tType == TokenType.Less || tType == TokenType.LessEq) {
+            return true;
+        }
+        return false;
+    }
+
     private static void print(TreeNode node) {
         // Adds the print terminal
         node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
