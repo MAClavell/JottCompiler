@@ -35,6 +35,10 @@ public class Reference {
         return endToken;
     }
 
+    public void addEndToken(int token){
+        this.endToken=token;
+    }
+
     public void addSymbolToScope(String symbolName, Symbol s){
         scopedSymbols.put(symbolName, s);
     }
@@ -144,7 +148,6 @@ public class Reference {
      * Adds a new reference to the scope
      * @param scope the scope to add a reference to
      * @param start the start of the scope
-     * @param end the end of the scope
      * @param name the name of the function
      * @param type the type of the reference
      */

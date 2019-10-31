@@ -7,13 +7,13 @@ public class Jott {
         //Get file name
         if(args.length != 1)
         {
-           System.out.println(
-                   "Usage: java Jott program.j\n" +
-                   "Compile and run a Jott program from a file.\n\n" +
-                   "Parameters:\n" +
-                   "program.j   File name of any program written in Jott.\n"
-           );
-           return;
+            System.out.println(
+                    "Usage: java Jott program.j\n" +
+                            "Compile and run a Jott program from a file.\n\n" +
+                            "Parameters:\n" +
+                            "program.j   File name of any program written in Jott.\n"
+            );
+            return;
         }
 
         //Read in the file
@@ -30,7 +30,8 @@ public class Jott {
         }
         System.out.println("");
 
-        Reference global=new Reference(0, tokens.size(), Reference.ReferenceType.GLOBAL);
+        Reference global=new Reference(0, Reference.ReferenceType.GLOBAL);
+        global.addEndToken(tokens.size()-1);
 
         // Symbol table
         HashMap<String, Symbol> symbolTable = new HashMap<String, Symbol>();

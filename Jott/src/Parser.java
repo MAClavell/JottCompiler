@@ -51,8 +51,8 @@ public class Parser {
 
 
     private static void program(TreeNode node){
-       stmt_list(node.addTreeNode((new State((State.stateType.STMT_LIST)))));
-       node.addTreeNode((new State((State.stateType.END_PROG))));
+        stmt_list(node.addTreeNode((new State((State.stateType.STMT_LIST)))));
+        node.addTreeNode((new State((State.stateType.END_PROG))));
     }
 
     /**
@@ -236,16 +236,17 @@ public class Parser {
         checkSize();
 
         // The expression whose 2nd or 3rd token is a relational op
+        // TO DO NOT SURE ON CORRECTNESS QUITE YET
         if (isTokenTypeRelational(tokenIndex + 1) ||
                 isTokenTypeRelational(tokenIndex + 2)) {
             if(isTokenTypeString(tokenIndex)) {
-                // STRING REL OP
+                i_expr(node.addTreeNode(new State(State.stateType.I_EXPR)), false);
             }
             else if(isTokenTypeInteger(tokenIndex)) {
-                // INT REL OP
+                i_expr(node.addTreeNode(new State(State.stateType.I_EXPR)), false);
             }
             else if(isTokenTypeDouble(tokenIndex)) {
-                // DOUBLE REL OP
+                i_expr(node.addTreeNode(new State(State.stateType.I_EXPR)), false);
             }
         }
 
@@ -289,13 +290,13 @@ public class Parser {
             }
             //Variable does not exists
             else LogError.log(LogError.ErrorType.RUNTIME, "Unknown variable '" +
-                    tokenStream.get(tokenIndex).getTokenText()+"'",
+                            tokenStream.get(tokenIndex).getTokenText()+"'",
                     tokenStream.get(tokenIndex));
         }
 
         //Invalid expression
         else LogError.log(LogError.ErrorType.SYNTAX, "Expected an Expression, got " +
-                    tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                            tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
                     tokenStream.get(tokenIndex));
     }
 
@@ -341,7 +342,7 @@ public class Parser {
             tokenIndex++;
         }
         else LogError.log(LogError.ErrorType.SYNTAX, "Expected '(', got " +
-                tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                        tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
                 tokenStream.get(tokenIndex));
 
         // Adds the expression to print
@@ -353,7 +354,7 @@ public class Parser {
             tokenIndex++;
         }
         else LogError.log(LogError.ErrorType.SYNTAX, "Expected ')', got " +
-                tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                        tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
                 tokenStream.get(tokenIndex));
 
         // Adds the semicolon
@@ -362,7 +363,7 @@ public class Parser {
             tokenIndex++;
         }
         else LogError.log(LogError.ErrorType.SYNTAX, "Expected ';', got " +
-                tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                        tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
                 tokenStream.get(tokenIndex));
     }
 
@@ -750,7 +751,7 @@ public class Parser {
                 tokenIndex++;
             }
             else LogError.log(LogError.ErrorType.SYNTAX, "Expected '(', got " +
-                    tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                            tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
                     tokenStream.get(tokenIndex));
 
             // Adds the first s_expr
@@ -762,7 +763,7 @@ public class Parser {
                 tokenIndex++;
             }
             else LogError.log(LogError.ErrorType.SYNTAX, "Expected ',', got " +
-                    tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                            tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
                     tokenStream.get(tokenIndex));
 
             // Adds the second s_expr
@@ -790,7 +791,7 @@ public class Parser {
                 tokenIndex++;
             }
             else LogError.log(LogError.ErrorType.SYNTAX, "Expected '(', got " +
-                    tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                            tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
                     tokenStream.get(tokenIndex));
 
             // Adds the s_expr
@@ -802,7 +803,7 @@ public class Parser {
                 tokenIndex++;
             }
             else LogError.log(LogError.ErrorType.SYNTAX, "Expected ',', got " +
-                    tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                            tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
                     tokenStream.get(tokenIndex));
 
             // Adds the i_expr
@@ -814,7 +815,7 @@ public class Parser {
                 tokenIndex++;
             }
             else LogError.log(LogError.ErrorType.SYNTAX, "Expected ')', got " +
-                    tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                            tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
                     tokenStream.get(tokenIndex));
         }
 
@@ -827,7 +828,7 @@ public class Parser {
         // Error
         else{
             LogError.log(LogError.ErrorType.SYNTAX, "Expected a String, got " +
-                    tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                            tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
                     tokenStream.get(tokenIndex));
         }
     }
@@ -867,7 +868,7 @@ public class Parser {
                 tok.getTokenType()==TokenType.Power;
 
     }
-    
+
     /**
      * Check if a token is any of the relational operators
      * @param tok Token to check
