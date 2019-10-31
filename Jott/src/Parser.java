@@ -10,7 +10,7 @@ public class Parser {
     // The list of tokens
     static ArrayList<Token> tokenStream;
 
-    static HashMap<String, Symbol> symbols;
+    static Reference globalScope;
     //The text line by line
     static String[] lines;
 
@@ -33,10 +33,10 @@ public class Parser {
      * @param tokens the token stream to parse
      * @return the parse tree
      */
-    public static TreeNode parse(ArrayList<Token> tokens, HashMap<String, Symbol> symbolTable){
+    public static TreeNode parse(ArrayList<Token> tokens, Reference global){
         // Sets the tokens
         tokenStream=tokens;
-        symbols=symbolTable;
+        globalScope=global;
 
         // The root node
         State state = new State(State.stateType.PROGRAM);
@@ -93,63 +93,63 @@ public class Parser {
 
             // The if statement
             else if(tokenStream.get(tokenIndex).getTokenText().equals(IF)){
-                node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
+                node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
                 tokenIndex++;
-                node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex)));
+                node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex), tokenIndex));
                 tokenIndex++;
                 expr(node.addTreeNode(new State(State.stateType.EXPR)));
-                node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex)));
+                node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex), tokenIndex));
                 tokenIndex++;
-                node.addTreeNode(new State(State.stateType.START_BLCK, tokenStream.get(tokenIndex)));
+                node.addTreeNode(new State(State.stateType.START_BLCK, tokenStream.get(tokenIndex), tokenIndex));
                 tokenIndex++;
                 b_stmt_list(node.addTreeNode(new State(State.stateType.B_STMT_LIST)));
-                node.addTreeNode(new State(State.stateType.END_BLCK, tokenStream.get(tokenIndex)));
+                node.addTreeNode(new State(State.stateType.END_BLCK, tokenStream.get(tokenIndex), tokenIndex));
                 tokenIndex++;
 
                 if(tokenStream.get(tokenIndex).getTokenText().equals(ELSE)){
-                    node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
+                    node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
                     tokenIndex++;
-                    node.addTreeNode(new State(State.stateType.START_BLCK, tokenStream.get(tokenIndex)));
+                    node.addTreeNode(new State(State.stateType.START_BLCK, tokenStream.get(tokenIndex), tokenIndex));
                     tokenIndex++;
                     b_stmt_list(node.addTreeNode(new State(State.stateType.B_STMT_LIST)));
-                    node.addTreeNode(new State(State.stateType.END_BLCK, tokenStream.get(tokenIndex)));
+                    node.addTreeNode(new State(State.stateType.END_BLCK, tokenStream.get(tokenIndex), tokenIndex));
                     tokenIndex++;
                 }
             }
 
             // The while statement
             else if(tokenStream.get(tokenIndex).getTokenText().equals(WHILE)){
-                node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
+                node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
                 tokenIndex++;
-                node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex)));
+                node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex), tokenIndex));
                 tokenIndex++;
                 i_expr(node.addTreeNode(new State(State.stateType.I_EXPR)), false);
-                node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex)));
+                node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex), tokenIndex));
                 tokenIndex++;
-                node.addTreeNode(new State(State.stateType.START_BLCK, tokenStream.get(tokenIndex)));
+                node.addTreeNode(new State(State.stateType.START_BLCK, tokenStream.get(tokenIndex), tokenIndex));
                 tokenIndex++;
                 b_stmt_list(node.addTreeNode(new State(State.stateType.B_STMT_LIST)));
-                node.addTreeNode(new State(State.stateType.END_BLCK, tokenStream.get(tokenIndex)));
+                node.addTreeNode(new State(State.stateType.END_BLCK, tokenStream.get(tokenIndex), tokenIndex));
                 tokenIndex++;
             }
 
             // The for statement
             else if(tokenStream.get(tokenIndex).getTokenText().equals(FOR)){
-                node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
+                node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
                 tokenIndex++;
-                node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex)));
+                node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex), tokenIndex));
                 tokenIndex++;
                 asmt(node.addTreeNode(new State(State.stateType.ASMT)));
                 i_expr(node.addTreeNode(new State(State.stateType.I_EXPR)), false);
-                node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex)));
+                node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex), tokenIndex));
                 tokenIndex++;
                 r_asmt(node.addTreeNode(new State(State.stateType.R_ASMT)));
-                node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex)));
+                node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex), tokenIndex));
                 tokenIndex++;
-                node.addTreeNode(new State(State.stateType.START_BLCK, tokenStream.get(tokenIndex)));
+                node.addTreeNode(new State(State.stateType.START_BLCK, tokenStream.get(tokenIndex), tokenIndex));
                 tokenIndex++;
                 b_stmt_list(node.addTreeNode(new State(State.stateType.B_STMT_LIST)));
-                node.addTreeNode(new State(State.stateType.END_BLCK, tokenStream.get(tokenIndex)));
+                node.addTreeNode(new State(State.stateType.END_BLCK, tokenStream.get(tokenIndex), tokenIndex));
                 tokenIndex++;
 
             }
@@ -164,7 +164,7 @@ public class Parser {
             else if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.ID)&&
                     tokenIndex+1<tokenStream.size()&&tokenStream.get(tokenIndex+1).getTokenType()==TokenType.Assign){
                 r_asmt(node.addTreeNode(new State(State.stateType.R_ASMT)));
-                node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex)));
+                node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex), tokenIndex));
                 tokenIndex++;
             }
 
@@ -179,7 +179,7 @@ public class Parser {
 
                 //Add end statement
                 if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndStmt)) {
-                    node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex)));
+                    node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex), tokenIndex));
                     tokenIndex++;
                 }
                 else LogError.log(LogError.ErrorType.SYNTAX, "Expected ';', got " +
@@ -211,7 +211,7 @@ public class Parser {
         else if(tokenStream.get(tokenIndex+1).getTokenType()==TokenType.Assign){
             r_asmt(node.addTreeNode(new State(State.stateType.R_ASMT)));
             if(tokenStream.get(tokenIndex).getTokenType()==TokenType.EndStmt) {
-                node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex)));
+                node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex), tokenIndex));
             }
             else{
                 LogError.log(LogError.ErrorType.SYNTAX, "Invalid statement", tokenStream.get(tokenIndex));
@@ -225,9 +225,9 @@ public class Parser {
     }
 
     private static void r_asmt(TreeNode node){
-        node.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex)));
+        node.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex), tokenIndex));
         tokenIndex++;
-        node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
+        node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
         tokenIndex++;
         expr(node.addTreeNode(new State(State.stateType.EXPR)));
     }
@@ -264,15 +264,17 @@ public class Parser {
         // If it is an id
         else if(tokenStream.get(tokenIndex).getTokenType()==TokenType.ID){
 
-            if(symbols.containsKey(tokenStream.get(tokenIndex).getTokenText()))
+            if(globalScope.hasSymbol(tokenStream.get(tokenIndex).getTokenText(), tokenIndex))
             {
                 // If the id is a double
-                if(symbols.get(tokenStream.get(tokenIndex).getTokenText()).getType()== Symbol.variableType.DOUBLE){
+                if(globalScope.getScopedSymbol(tokenStream.get(tokenIndex).getTokenText(), tokenIndex).getType()==
+                        Symbol.variableType.DOUBLE){
                     d_expr(node, false);
                 }
 
                 // If the id is an integer
-                else if(symbols.get(tokenStream.get(tokenIndex).getTokenText()).getType()== Symbol.variableType.INTEGER){
+                else if(globalScope.getScopedSymbol(tokenStream.get(tokenIndex).getTokenText(), tokenIndex).getType()==
+                        Symbol.variableType.INTEGER){
                     i_expr(node, false);
                 }
 
@@ -301,7 +303,8 @@ public class Parser {
     }
 
     private static boolean isTokenInteger() {
-        return tokenStream.get(tokenIndex).getTokenType().equals(TokenType.String) ||
+        return tokenStream.get(tokenIndex).getTokenType()==TokenType.Integer ||
+                tokenStream.get(tokenIndex).getTokenType().equals(TokenType.String) ||
                 tokenStream.get(tokenIndex).getTokenText().equals(CONCAT) ||
                 tokenStream.get(tokenIndex).getTokenText().equals(CHARAT);
     }
@@ -315,14 +318,14 @@ public class Parser {
 
     private static void print(TreeNode node) {
         // Adds the print terminal
-        node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
+        node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
         tokenIndex++;
 
         checkSize();
 
         // Adds the start parenthesis
         if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.StartParen)) {
-            node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex)));
+            node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex), tokenIndex));
             tokenIndex++;
         }
         else LogError.log(LogError.ErrorType.SYNTAX, "Expected '(', got " +
@@ -334,7 +337,7 @@ public class Parser {
 
         // Adds the end parenthesis
         if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndParen)) {
-            node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex)));
+            node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex), tokenIndex));
             tokenIndex++;
         }
         else LogError.log(LogError.ErrorType.SYNTAX, "Expected ')', got " +
@@ -343,7 +346,7 @@ public class Parser {
 
         // Adds the semicolon
         if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndStmt)) {
-            node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex)));
+            node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex), tokenIndex));
             tokenIndex++;
         }
         else LogError.log(LogError.ErrorType.SYNTAX, "Expected ';', got " +
@@ -374,12 +377,12 @@ public class Parser {
 
         // asmt_stmt -> <type>  <id > = <expr ><end_statement>
         // Adds a terminal with the Type's name with the corresponding token
-        node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
+        node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
         tokenIndex++;
 
         // Adds the id
         if (tokenStream.get(tokenIndex).getTokenType().equals(TokenType.ID)) {
-            node.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex)));
+            node.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex), tokenIndex));
 
             //Generate symbol
             Symbol s = null;
@@ -396,7 +399,7 @@ public class Parser {
                 default:
                     break;
             }
-            symbols.put(tokenStream.get(tokenIndex).getTokenText(), s);
+            Reference.addSymbol(globalScope, s, tokenIndex, tokenStream.get(tokenIndex).getTokenText());
 
             tokenIndex++;
         } else LogError.log(LogError.ErrorType.SYNTAX, "Expected a variable name, got " +
@@ -405,7 +408,7 @@ public class Parser {
 
         // Adds the = terminal
         if (tokenStream.get(tokenIndex).getTokenType().equals(TokenType.Assign)) {
-            node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
+            node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
             tokenIndex++;
         } else LogError.log(LogError.ErrorType.SYNTAX, "Expected '=', got " +
                         tokenStream.get(tokenIndex).getTokenType() + " '" + tokenStream.get(tokenIndex).getTokenText() + "'",
@@ -428,7 +431,7 @@ public class Parser {
 
         // Adds the end_statement
         if (tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndStmt)) {
-            node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex)));
+            node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex), tokenIndex));
             tokenIndex++;
         } else LogError.log(LogError.ErrorType.SYNTAX, "Expected ';', got " +
                         tokenStream.get(tokenIndex).getTokenType() + " '" + tokenStream.get(tokenIndex).getTokenText() + "'",
@@ -447,13 +450,13 @@ public class Parser {
 
         if(isTokenSign(tokenStream.get(tokenIndex)))
         {
-            dblNode.addTreeNode(new State(State.stateType.SIGN, tokenStream.get(tokenIndex)));
+            dblNode.addTreeNode(new State(State.stateType.SIGN, tokenStream.get(tokenIndex), tokenIndex));
             tokenIndex++;
             foundSign = true;
         }
         if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.Double))
         {
-            dblNode.addTreeNode(new State(State.stateType.DIGIT, tokenStream.get(tokenIndex)));
+            dblNode.addTreeNode(new State(State.stateType.DIGIT, tokenStream.get(tokenIndex), tokenIndex));
             tokenIndex++;
             node.addTreeNode(dblNode); //add to the real node
             return true;
@@ -487,7 +490,7 @@ public class Parser {
                 //Since this IS a math expression, add the ID as a SEPARATE D_EXPR
                 if(!isNestedExpr) {
                     TreeNode idNode = parentExprNode.addTreeNode(new State(State.stateType.D_EXPR));
-                    idNode.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex)));
+                    idNode.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex), tokenIndex));
                 }
                 tokenIndex++;
 
@@ -496,7 +499,7 @@ public class Parser {
             }
             //Since this is NOT a math expression, add the ID to THIS D_EXPR
             else {
-                parentExprNode.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex)));
+                parentExprNode.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex), tokenIndex));
                 node.addTreeNode(parentExprNode); //add to topmost node
                 tokenIndex++;
                 return parentExprNode; //hit the REAL end of an D_EXPR
@@ -533,7 +536,7 @@ public class Parser {
     private static TreeNode d_exprThirdComponent(TreeNode node, TreeNode parentExprNode)
     {
         //Add the operator to the D_EXPR
-        parentExprNode.addTreeNode(new State(State.stateType.OP, tokenStream.get(tokenIndex)));
+        parentExprNode.addTreeNode(new State(State.stateType.OP, tokenStream.get(tokenIndex), tokenIndex));
         tokenIndex++;
 
         //Find what the third token is
@@ -543,7 +546,7 @@ public class Parser {
         {
             //Add ID to the D_EXPR
             TreeNode idNode = parentExprNode.addTreeNode(new State(State.stateType.D_EXPR));
-            idNode.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex)));
+            idNode.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex), tokenIndex));
             tokenIndex++;
         }
 
@@ -583,13 +586,13 @@ public class Parser {
 
         if(isTokenSign(tokenStream.get(tokenIndex)))
         {
-            intNode.addTreeNode(new State(State.stateType.SIGN, tokenStream.get(tokenIndex)));
+            intNode.addTreeNode(new State(State.stateType.SIGN, tokenStream.get(tokenIndex), tokenIndex));
             tokenIndex++;
             foundSign = true;
         }
         if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.Integer))
         {
-            intNode.addTreeNode(new State(State.stateType.DIGIT, tokenStream.get(tokenIndex)));
+            intNode.addTreeNode(new State(State.stateType.DIGIT, tokenStream.get(tokenIndex), tokenIndex));
             tokenIndex++;
             node.addTreeNode(intNode); //add to the real node
             return true;
@@ -623,7 +626,7 @@ public class Parser {
                 //Since this IS a math expression, add the ID as a SEPARATE I_EXPR
                 if(!isNestedExpr) {
                     TreeNode idNode = parentExprNode.addTreeNode(new State(State.stateType.I_EXPR));
-                    idNode.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex)));
+                    idNode.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex), tokenIndex));
                 }
                 tokenIndex++;
 
@@ -632,7 +635,7 @@ public class Parser {
             }
             //Since this is NOT a math expression, add the ID to THIS I_EXPR
             else {
-                parentExprNode.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex)));
+                parentExprNode.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex), tokenIndex));
                 node.addTreeNode(parentExprNode); //add to topmost node
                 tokenIndex++;
                 return parentExprNode; //hit the REAL end of an I_EXPR
@@ -669,7 +672,7 @@ public class Parser {
     private static TreeNode i_exprThirdComponent(TreeNode node, TreeNode parentExprNode)
     {
         //Add the operator to the I_EXPR
-        parentExprNode.addTreeNode(new State(State.stateType.OP, tokenStream.get(tokenIndex)));
+        parentExprNode.addTreeNode(new State(State.stateType.OP, tokenStream.get(tokenIndex), tokenIndex));
         tokenIndex++;
 
         //Find what the third token is
@@ -678,7 +681,7 @@ public class Parser {
         {
             //Add ID to the I_EXPR
             TreeNode idNode = parentExprNode.addTreeNode(new State(State.stateType.I_EXPR));
-            idNode.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex)));
+            idNode.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex), tokenIndex));
             tokenIndex++;
         }
         boolean foundInteger = foundID ? false : integer(parentExprNode);
@@ -709,7 +712,7 @@ public class Parser {
 
     private static void str_literal(TreeNode node) {
         // Adds the string
-        node.addTreeNode(new State(State.stateType.STR, tokenStream.get(tokenIndex)));
+        node.addTreeNode(new State(State.stateType.STR, tokenStream.get(tokenIndex), tokenIndex));
         tokenIndex++;
     }
 
@@ -726,12 +729,12 @@ public class Parser {
         else if(tokenText.equals(CONCAT)){
 
             // Adds the concat terminal
-            node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
+            node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
             tokenIndex++;
 
             // The start_paren terminal
             if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.StartParen)) {
-                node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex)));
+                node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex), tokenIndex));
                 tokenIndex++;
             }
             else LogError.log(LogError.ErrorType.SYNTAX, "Expected '(', got " +
@@ -743,7 +746,7 @@ public class Parser {
 
             // Adds the comma terminal
             if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.Comma)) {
-                node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
+                node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
                 tokenIndex++;
             }
             else LogError.log(LogError.ErrorType.SYNTAX, "Expected ',', got " +
@@ -754,7 +757,7 @@ public class Parser {
             s_expr(node.addTreeNode(new State(State.stateType.S_EXPR)));
 
             if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndParen)) {
-                node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex)));
+                node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex), tokenIndex));
                 tokenIndex++;
             }
             else LogError.log(LogError.ErrorType.SYNTAX, "Expected ')', got " +
@@ -766,12 +769,12 @@ public class Parser {
         else if(tokenText.equals(CHARAT)){
 
             // The charAt terminal
-            node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
+            node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
             tokenIndex++;
 
             // Adds the start paren
             if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.StartParen)) {
-                node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex)));
+                node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex), tokenIndex));
                 tokenIndex++;
             }
             else LogError.log(LogError.ErrorType.SYNTAX, "Expected '(', got " +
@@ -783,7 +786,7 @@ public class Parser {
 
             // Adds the comma terminal
             if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.Comma)) {
-                node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex)));
+                node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
                 tokenIndex++;
             }
             else LogError.log(LogError.ErrorType.SYNTAX, "Expected ',', got " +
@@ -795,7 +798,7 @@ public class Parser {
 
             // Adds the end paren
             if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndParen)) {
-                node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex)));
+                node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex), tokenIndex));
                 tokenIndex++;
             }
             else LogError.log(LogError.ErrorType.SYNTAX, "Expected ')', got " +
@@ -805,7 +808,7 @@ public class Parser {
 
         // s_expr-> <id>
         else if(tokenStream.get(tokenIndex).getTokenType()==TokenType.ID){
-            node.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex)));
+            node.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex), tokenIndex));
             tokenIndex++;
         }
 

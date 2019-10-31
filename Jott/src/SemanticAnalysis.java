@@ -2,10 +2,15 @@ import java.util.HashMap;
 
 public class SemanticAnalysis {
 
-    private static HashMap<String, Symbol> symbols;
+    private static final String IF="if";
+    private static final String WHILE="while";
+    private static final String FOR="for";
 
-    public static void output(TreeNode root, HashMap<String, Symbol> symbolTable){
-        symbols=symbolTable;
+    private static Reference globalScope;
+    private static Reference currentScope;
+
+    public static void output(TreeNode root, Reference global){
+        globalScope=global;
         program(root);
     }
 
@@ -40,6 +45,24 @@ public class SemanticAnalysis {
             asmt_stmt(node.getChildren().get(0));
         }
 
+        // Evaluates the if statement
+        else if(node.getChildren().get(0).getState().getState()== State.stateType.ID &&
+        node.getChildren().get(0).getState().getToken().getTokenText().equals(IF)){
+
+        }
+
+        // Evaluates the while statement
+        else if(node.getChildren().get(0).getState().getState()== State.stateType.ID &&
+                node.getChildren().get(0).getState().getToken().getTokenText().equals(WHILE)){
+
+        }
+
+        // Evaluates the for loop
+        else if(node.getChildren().get(0).getState().getState()== State.stateType.ID &&
+                node.getChildren().get(0).getState().getToken().getTokenText().equals(FOR)){
+
+        }
+
         // Evaluates the <expr><end_statement> -- doesn't actually change the state
         else{
 
@@ -48,11 +71,11 @@ public class SemanticAnalysis {
                 String id=node.getChildren().get(0).getToken().getTokenText();
 
                 // If it is a valid id
-                if(symbols.containsKey(id)){
+                if(globalScope.hasSymbol(id, node.getChildren().get(0).getState().getTokenIndex())){
 
                     // If the id is not null
-                    if(symbols.get(id)!=null){
-                        symbols.get(id);
+                    if(globalScope.getScopedSymbol(id, node.getChildren().get(0).getState().getTokenIndex())!=null){
+                        globalScope.getScopedSymbol(id, node.getChildren().get(0).getState().getTokenIndex());
                     }
 
                     // If the id is null
@@ -98,7 +121,8 @@ public class SemanticAnalysis {
 
         // If the child's expr's state is an id
         if(node.getChildren().get(2).getChildren().get(0).getState().getState() == State.stateType.ID){
-            Symbol childSymbol=symbols.get(node.getChildren().get(2).getToken().getTokenText());
+            Symbol childSymbol=globalScope.getScopedSymbol(node.getChildren().get(2).getToken().getTokenText(),
+                    node.getChildren().get(2).getState().getTokenIndex());
             if(childSymbol.getValue()!=null) {
                 System.out.println(childSymbol.getValue());
             }
@@ -134,9 +158,12 @@ public class SemanticAnalysis {
 
         // An Integer assignment statement
         if(childNode.getToken().getTokenText().equals("Integer")){
+
             //If this is a valid id
-            if(symbols.containsKey(id) && symbols.get(id).getType()== Symbol.variableType.INTEGER){
-                symbols.get(id).changeValue(i_expr(exprNode));
+            if(globalScope.hasSymbol(id, childNode.getState().getTokenIndex()) &&
+                    globalScope.getScopedSymbol(id, childNode.getState().getTokenIndex()).getType()
+                            == Symbol.variableType.INTEGER){
+                globalScope.getScopedSymbol(id, childNode.getState().getTokenIndex()).changeValue(i_expr(exprNode));
             }
             else {
                 LogError.log(LogError.ErrorType.SYNTAX, "Expected a valid ID, got " +
@@ -147,8 +174,10 @@ public class SemanticAnalysis {
 
         // A Double assignment statement
         else if(childNode.getToken().getTokenText().equals("Double")){
-            if(symbols.containsKey(id) && symbols.get(id).getType()== Symbol.variableType.DOUBLE){
-                symbols.get(id).changeValue(d_expr(exprNode));
+            if(globalScope.hasSymbol(id, childNode.getState().getTokenIndex()) &&
+                    globalScope.getScopedSymbol(id, childNode.getState().getTokenIndex()).getType()
+                            == Symbol.variableType.DOUBLE){
+                globalScope.getScopedSymbol(id, childNode.getState().getTokenIndex()).changeValue(d_expr(exprNode));
             }
 
             else {
@@ -160,8 +189,10 @@ public class SemanticAnalysis {
 
         // A String asignment statement
         else{
-            if(symbols.containsKey(id) && symbols.get(id).getType()== Symbol.variableType.STRING){
-                symbols.get(id).changeValue(s_expr(exprNode));
+            if(globalScope.hasSymbol(id, childNode.getState().getTokenIndex()) &&
+                    globalScope.getScopedSymbol(id, childNode.getState().getTokenIndex()).getType()
+                            == Symbol.variableType.STRING){
+                globalScope.getScopedSymbol(id, childNode.getState().getTokenIndex()).changeValue(s_expr(exprNode));
             }
             else {
                 LogError.log(LogError.ErrorType.SYNTAX, "Expected a valid ID, got " +
@@ -172,9 +203,11 @@ public class SemanticAnalysis {
     }
 
     private static boolean verifyIntID(TreeNode node){
-        if(symbols.containsKey(node.getToken().getTokenText())){
-            if(symbols.get(node.getToken().getTokenText()) != null &&
-                symbols.get(node.getToken().getTokenText()).getType()== Symbol.variableType.INTEGER){
+
+        if(globalScope.hasSymbol(node.getToken().getTokenText(), node.getState().getTokenIndex())){
+            if(globalScope.hasSymbol(node.getToken().getTokenText(), node.getState().getTokenIndex()) &&
+                globalScope.getScopedSymbol(node.getToken().getTokenText(), node.getState().getTokenIndex()).getType()==
+                        Symbol.variableType.INTEGER){
                 return true;
             }
         }
@@ -188,14 +221,16 @@ public class SemanticAnalysis {
         if(childNode.getState().getState()== State.stateType.ID){
             // Verifies it is defined, not null, and it is an integer
             if(verifyIntID(childNode)){
-                return (Integer)symbols.get(childNode.getToken().getTokenText()).getValue();
+                return (Integer)globalScope.getScopedSymbol(childNode.getToken().getTokenText(),
+                        childNode.getState().getTokenIndex()).getValue();
             }
-            if(!symbols.containsKey(childNode.getToken().getTokenText())) {
+            if(!globalScope.hasSymbol(childNode.getToken().getTokenText(), childNode.getState().getTokenIndex())) {
                 LogError.log(LogError.ErrorType.SYNTAX, "Expected a valid ID, got " +
                         childNode.getToken().getTokenType() + " '" +
                         childNode.getToken().getTokenText() + "'", childNode.getToken());
             }
-            else if(symbols.get(childNode.getToken().getTokenText()) == null){
+            else if(globalScope.getScopedSymbol(childNode.getToken().getTokenText(),
+                    childNode.getState().getTokenIndex()) == null){
                 LogError.log(LogError.ErrorType.SYNTAX, "Can not do operations on a null operand, got " +
                         childNode.getToken().getTokenType() + " '" +
                         childNode.getToken().getTokenText() + "'", childNode.getToken());
@@ -278,9 +313,10 @@ public class SemanticAnalysis {
     }
 
     private static boolean verifyDoubleID(TreeNode node){
-        if(symbols.containsKey(node.getToken().getTokenText())){
-            if(symbols.get(node.getToken().getTokenText()) != null &&
-                    symbols.get(node.getToken().getTokenText()).getType()== Symbol.variableType.DOUBLE){
+        if(globalScope.hasSymbol(node.getToken().getTokenText(), node.getState().getTokenIndex())){
+            if(globalScope.getScopedSymbol(node.getToken().getTokenText(), node.getState().getTokenIndex()) != null &&
+                    globalScope.getScopedSymbol(node.getToken().getTokenText(),
+                            node.getState().getTokenIndex()).getType()== Symbol.variableType.DOUBLE){
                 return true;
             }
         }
@@ -294,14 +330,16 @@ public class SemanticAnalysis {
         // If the child node is an ID
         if(childNode.getState().getState()== State.stateType.ID){
             if(verifyDoubleID(childNode)){
-                return (Double)symbols.get(childNode.getToken().getTokenText()).getValue();
+                return (Double)globalScope.getScopedSymbol(childNode.getToken().getTokenText(),
+                        childNode.getState().getTokenIndex()).getValue();
             }
-            if(!symbols.containsKey(childNode.getToken().getTokenText())) {
+            if(!globalScope.hasSymbol(childNode.getToken().getTokenText(), childNode.getState().getTokenIndex())) {
                 LogError.log(LogError.ErrorType.SYNTAX, "Expected a valid ID, got " +
                         childNode.getToken().getTokenType() + " '" +
                         childNode.getToken().getTokenText() + "'", childNode.getToken());
             }
-            else if(symbols.get(childNode.getToken().getTokenText()) == null){
+            else if(globalScope.getScopedSymbol(childNode.getToken().getTokenText(),
+                    childNode.getState().getTokenIndex()) == null){
                 LogError.log(LogError.ErrorType.RUNTIME, "Can not do operations on a null operand, got " +
                         childNode.getToken().getTokenType() + " '" +
                         childNode.getToken().getTokenText() + "'", childNode.getToken());
@@ -378,9 +416,10 @@ public class SemanticAnalysis {
     }
 
     private static boolean verifyStringID(TreeNode node){
-        if(symbols.containsKey(node.getToken().getTokenText())){
-            if(symbols.get(node.getToken().getTokenText()) != null &&
-                    symbols.get(node.getToken().getTokenText()).getType()== Symbol.variableType.STRING){
+        if(globalScope.hasSymbol(node.getToken().getTokenText(), node.getState().getTokenIndex())){
+            if(globalScope.getScopedSymbol(node.getToken().getTokenText(), node.getState().getTokenIndex()) != null &&
+                    globalScope.getScopedSymbol(node.getToken().getTokenText(),
+                            node.getState().getTokenIndex()).getType()== Symbol.variableType.STRING){
                 return true;
             }
         }
@@ -413,15 +452,17 @@ public class SemanticAnalysis {
         // It is an id
         else{
             if(verifyStringID(childNode)){
-                return (String) symbols.get(childNode.getToken().getTokenText()).getValue();
+                return (String) globalScope.getScopedSymbol(childNode.getToken().getTokenText(),
+                        childNode.getState().getTokenIndex()).getValue();
             }
 
-            if(!symbols.containsKey(childNode.getToken().getTokenText())) {
+            if(!globalScope.hasSymbol(childNode.getToken().getTokenText(), childNode.getState().getTokenIndex())) {
                 LogError.log(LogError.ErrorType.SYNTAX, "Expected a valid ID, got " +
                         childNode.getToken().getTokenType() + " '" +
                         childNode.getToken().getTokenText() + "'", childNode.getToken());
             }
-            else if(symbols.get(childNode.getToken().getTokenText()) == null){
+            else if(globalScope.getScopedSymbol(childNode.getToken().getTokenText(),
+                    childNode.getState().getTokenIndex()) == null){
                 LogError.log(LogError.ErrorType.RUNTIME, "Can not do operations on a null operand, got " +
                         childNode.getToken().getTokenType() + " '" +
                         childNode.getToken().getTokenText() + "'", childNode.getToken());

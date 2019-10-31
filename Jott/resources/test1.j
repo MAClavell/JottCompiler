@@ -1,4 +1,4 @@
-< <= > >= == != = { }
-
-for(Integer i=0; i<=10; i++){
+Integer i=0;
+while(i<5){
+    print(i);
 }

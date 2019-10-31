@@ -10,6 +10,8 @@ public class State {
     private stateType state;
     //If there is a final token, this is where it will go
     private Token token;
+    // The current index of the token. Used for scope
+    private int tokenIndex;
 
     /**
      * The constructor for the state in a parse tree
@@ -25,7 +27,7 @@ public class State {
      * @param state the representation of the state for the parse tree
      * @param token the current token if the state is a terminal
      */
-    public State(stateType state, Token token){
+    public State(stateType state, Token token, int tokenIndex){
         this.state=state;
         this.token=token;
     }
@@ -44,6 +46,10 @@ public class State {
      */
     public Token getToken(){
         return token;
+    }
+
+    public int getTokenIndex(){
+        return tokenIndex;
     }
 
     /**
