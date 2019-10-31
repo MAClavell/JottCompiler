@@ -29,6 +29,7 @@ public class State {
      */
     public State(stateType state, Token token, int tokenIndex){
         this.state=state;
+        this.tokenIndex=tokenIndex;
         this.token=token;
     }
 

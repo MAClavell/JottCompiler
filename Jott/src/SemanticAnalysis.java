@@ -35,6 +35,8 @@ public class SemanticAnalysis {
 
     private static void stmt(TreeNode node){
 
+        State.stateType stateType=node.getChildren().get(0).getState().getState();
+
         // Evaluates the print statement
         if(node.getChildren().get(0).getState().getState() == State.stateType.PRINT){
             print(node.getChildren().get(0));
@@ -45,22 +47,107 @@ public class SemanticAnalysis {
             asmt_stmt(node.getChildren().get(0));
         }
 
+        else if(node.getChildren().get(0).getState().getState()== State.stateType.R_ASMT){
+            r_asmt(node.getChildren().get(0));
+        }
+
         // Evaluates the if statement
-        else if(node.getChildren().get(0).getState().getState()== State.stateType.ID &&
+        else if(node.getChildren().get(0).getState().getState()== State.stateType.TERMINAL &&
         node.getChildren().get(0).getState().getToken().getTokenText().equals(IF)){
 
+            TreeNode grandchildNode=node.getChildren().get(2).getChildren().get(0);
+
+            // If the expression is an i_expr
+            if(grandchildNode.getState().getState()== State.stateType.I_EXPR){
+                if(i_expr(node.getChildren().get(2))!=0){
+                    b_stmt_list(node.getChildren().get(5));
+                }
+                else if(node.getChildren().size()>7){
+                    b_stmt_list(node.getChildren().get(9));
+                }
+            }
+
+            // If the expression is a d_expr
+            else if(grandchildNode.getState().getState()== State.stateType.D_EXPR){
+                if(d_expr(node.getChildren().get(2))!=0){
+                    b_stmt_list(node.getChildren().get(5));
+                }
+                else if(node.getChildren().size()>7){
+                    b_stmt_list(node.getChildren().get(9));
+                }
+            }
+
+            // If the expression is a s_expr
+            else{
+                if(s_expr(node.getChildren().get(2))!=null){
+                    b_stmt_list(node.getChildren().get(5));
+                }
+                else if(node.getChildren().size()>7){
+                    b_stmt_list(node.getChildren().get(9));
+                }
+            }
         }
 
         // Evaluates the while statement
-        else if(node.getChildren().get(0).getState().getState()== State.stateType.ID &&
+        else if(node.getChildren().get(0).getState().getState()== State.stateType.TERMINAL &&
                 node.getChildren().get(0).getState().getToken().getTokenText().equals(WHILE)){
 
+            TreeNode grandchildNode=node.getChildren().get(2).getChildren().get(0);
+
+            // If the expression is an i_expr
+            if(grandchildNode.getState().getState()== State.stateType.I_EXPR){
+                while(i_expr(node.getChildren().get(2))!=0){
+                    b_stmt_list(node.getChildren().get(5));
+                }
+            }
+
+            // If the expression is a d_expr
+            else if(grandchildNode.getState().getState()== State.stateType.D_EXPR){
+                while(d_expr(node.getChildren().get(2))!=0){
+                    b_stmt_list(node.getChildren().get(5));
+                }
+            }
+
+            // If the expression is a s_expr
+            else{
+                while(s_expr(node.getChildren().get(2))!=null){
+                    b_stmt_list(node.getChildren().get(5));
+                }
+            }
         }
 
         // Evaluates the for loop
-        else if(node.getChildren().get(0).getState().getState()== State.stateType.ID &&
+        else if(node.getChildren().get(0).getState().getState()== State.stateType.TERMINAL &&
                 node.getChildren().get(0).getState().getToken().getTokenText().equals(FOR)){
+            TreeNode childNode=node.getChildren().get(3);
 
+            TreeNode grandchildNode=childNode.getChildren().get(0);
+
+            asmt_stmt(node.getChildren().get(2));
+
+            // If the expression is an i_expr
+            if(grandchildNode.getState().getState()== State.stateType.I_EXPR){
+                while(i_expr(grandchildNode)!=0){
+                    b_stmt_list(node.getChildren().get(8));
+                    r_asmt(node.getChildren().get(5));
+                }
+            }
+
+            // If the expression is a d_expr
+            else if(grandchildNode.getState().getState()== State.stateType.D_EXPR){
+                while(d_expr(grandchildNode)!=0){
+                    b_stmt_list(node.getChildren().get(8));
+                    r_asmt(node.getChildren().get(5));
+                }
+            }
+
+            // If the expression is a s_expr
+            else{
+                while(s_expr(grandchildNode)!=null){
+                    b_stmt_list(node.getChildren().get(8));
+                    r_asmt(node.getChildren().get(5));
+                }
+            }
         }
 
         // Evaluates the <expr><end_statement> -- doesn't actually change the state
@@ -111,6 +198,74 @@ public class SemanticAnalysis {
                     s_expr(exprNode);
                 }
             }
+        }
+    }
+
+    private static void b_stmt_list(TreeNode node){
+        b_stmt(node.getChildren().get(0));
+        if(node.getChildren().size()==2){
+            b_stmt_list(node.getChildren().get(1));
+        }
+    }
+
+    private static void b_stmt(TreeNode node){
+        TreeNode childNode=node.getChildren().get(0);
+
+        // The reassignment state
+        if(childNode.getState().getState()== State.stateType.R_ASMT){
+            r_asmt(childNode);
+        }
+
+        // The print state
+        else if(childNode.getState().getState()== State.stateType.PRINT){
+            print(childNode);
+        }
+
+        // The expression state
+        else{
+            TreeNode grandchildNode=childNode.getChildren().get(0);
+
+            // The grandchildNode is an i_expr
+            if(grandchildNode.getState().getState()== State.stateType.I_EXPR){
+                i_expr(grandchildNode);
+            }
+
+            // The grandchildNode is a d_expr
+            else if(grandchildNode.getState().getState()== State.stateType.D_EXPR){
+                d_expr(grandchildNode);
+            }
+
+            // The grandchildNode is an s_expr
+            else{
+                s_expr(grandchildNode);
+            }
+        }
+    }
+
+    private static void r_asmt(TreeNode node){
+        TreeNode childNode=node.getChildren().get(0);
+        TreeNode grandchildNode=node.getChildren().get(2).getChildren().get(0);
+
+        // Gets the symbol from the symbol table
+        Symbol scopedSymbol=globalScope.getScopedSymbol(childNode.getToken().getTokenText(),
+                childNode.getState().getTokenIndex());
+        if(scopedSymbol==null){
+            LogError.log(LogError.ErrorType.RUNTIME, "Invalid reassignment", childNode.getToken());
+        }
+        else if(scopedSymbol.getType()== Symbol.variableType.INTEGER &&
+                grandchildNode.getState().getState()== State.stateType.I_EXPR){
+            scopedSymbol.changeValue(i_expr(grandchildNode));
+        }
+        else if(scopedSymbol.getType()== Symbol.variableType.DOUBLE &&
+                grandchildNode.getState().getState()== State.stateType.D_EXPR){
+            scopedSymbol.changeValue(d_expr(grandchildNode));
+        }
+        else if(scopedSymbol.getType()== Symbol.variableType.STRING &&
+                grandchildNode.getState().getState()== State.stateType.S_EXPR){
+            scopedSymbol.changeValue(s_expr(grandchildNode));
+        }
+        else{
+            LogError.log(LogError.ErrorType.RUNTIME, "Invalid reassignment", childNode.getToken());
         }
     }
 
@@ -296,6 +451,26 @@ public class SemanticAnalysis {
                     return firstOp/secondOp;
                 case Power:
                     return (int) (Math.pow(firstOp, secondOp));
+                case Less:
+                    if(firstOp<secondOp){
+                        return 1;
+                    }
+                    return 0;
+                case Greater:
+                    if(firstOp>secondOp){
+                        return 1;
+                    }
+                    return 0;
+                case LessEq:
+                    if(firstOp<=secondOp){
+                        return 1;
+                    }
+                    return 0;
+                case GreaterEq:
+                    if(firstOp>=secondOp){
+                        return 1;
+                    }
+                    return 0;
             }
 
             LogError.log(LogError.ErrorType.SYNTAX, "Expected a valid operator, got " +
@@ -402,6 +577,26 @@ public class SemanticAnalysis {
                     return firstOp/secondOp;
                 case Power:
                     return Math.pow(firstOp, secondOp);
+                case Less:
+                    if(firstOp<secondOp){
+                        return 1;
+                    }
+                    return 0;
+                case Greater:
+                    if(firstOp>secondOp){
+                        return 1;
+                    }
+                    return 0;
+                case LessEq:
+                    if(firstOp<=secondOp){
+                        return 1;
+                    }
+                    return 0;
+                case GreaterEq:
+                    if(firstOp>=secondOp){
+                        return 1;
+                    }
+                    return 0;
             }
 
         }
