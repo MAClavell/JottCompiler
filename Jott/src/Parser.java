@@ -236,17 +236,16 @@ public class Parser {
         checkSize();
 
         // The expression whose 2nd or 3rd token is a relational op
-        // TO DO NOT SURE ON CORRECTNESS QUITE YET
         if (isTokenTypeRelational(tokenIndex + 1) ||
                 isTokenTypeRelational(tokenIndex + 2)) {
             if(isTokenTypeString(tokenIndex)) {
-                i_expr(node.addTreeNode(new State(State.stateType.I_EXPR)), false);
+                // STRING REL OP
             }
             else if(isTokenTypeInteger(tokenIndex)) {
-                i_expr(node.addTreeNode(new State(State.stateType.I_EXPR)), false);
+                // INT REL OP
             }
             else if(isTokenTypeDouble(tokenIndex)) {
-                i_expr(node.addTreeNode(new State(State.stateType.I_EXPR)), false);
+                // DOUBLE REL OP
             }
         }
 
