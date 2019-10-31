@@ -200,7 +200,10 @@ public class Parser {
     }
 
     private static void b_stmt_list(TreeNode node){
-
+        b_stmt(node.addTreeNode(new State(State.stateType.B_STMT)));
+        if(tokenStream.get(tokenIndex).getTokenType()!=TokenType.EndBlk){
+            b_stmt_list(node.addTreeNode(new State(State.stateType.B_STMT_LIST)));
+        }
     }
 
     private static void b_stmt(TreeNode node){
