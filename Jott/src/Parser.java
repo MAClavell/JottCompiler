@@ -242,7 +242,7 @@ public class Parser {
         // The expression starting with concat (in s_expr)
         // The expression starting with charAt (in s_expr)
         if(isTokenTypeString(tokenStream.get(tokenIndex))) {
-            s_expr(node.addTreeNode(new State(State.stateType.S_EXPR)));
+            //node.addTreeNode(s_expr(false));//s_expr(node.addTreeNode(new State(State.stateType.S_EXPR)));
         }
 
         // If the first token is an integer or a -integer/+integer (in i_expr)
@@ -273,7 +273,7 @@ public class Parser {
                 }
 
                 else{
-                    s_expr(node.addTreeNode(new State(State.stateType.S_EXPR)));
+                    //node.addTreeNode(s_expr(false));//s_expr(node.addTreeNode(new State(State.stateType.S_EXPR)));
                 }
             }
             //Variable does not exists
@@ -395,7 +395,7 @@ public class Parser {
                 node.addTreeNode(i_expr());
                 break;
             case STRING:
-                s_expr(node.addTreeNode(new State(State.stateType.S_EXPR)));
+                //node.addTreeNode(s_expr(false));//s_expr(node.addTreeNode(new State(State.stateType.S_EXPR)));
                 break;
             default:
                 break;
@@ -574,12 +574,26 @@ public class Parser {
     private static TreeNode i_expr() {
 
         TreeNode first = null;
-        /*
-        first = s_expr(false);
-        if(first != null)
-        {
-            //Check for relative op and another i_expr
-        }*/
+
+        //Find string relations
+        if(isTokenTypeString(tokenStream.get(tokenIndex))) {
+            //first = s_expr(false);
+            if (first != null) {
+                //Check for relative op and another s_expr
+                if (isTokenRelOp(tokenStream.get(tokenIndex))) {
+                    TreeNode relOp = new TreeNode(new State(State.stateType.REL_OP, tokenStream.get(tokenIndex), tokenIndex));
+                    tokenIndex++;
+                    TreeNode second = null;// = s_expr(false);
+                    if (second != null) {
+                        TreeNode root = new TreeNode(new State(State.stateType.I_EXPR));
+                        root.addTreeNode(first);
+                        root.addTreeNode(relOp);
+                        root.addTreeNode(second);
+                        return root;
+                    }
+                }
+            }
+        }
 
         //Find double relations
         if(isTokenTypeDouble(tokenIndex)) {
@@ -720,25 +734,31 @@ public class Parser {
         tokenIndex++;
     }
 
-    private static void s_expr(TreeNode node) {
+    private static void s_expr(boolean isNestedExpr) {
 
         String tokenText=tokenStream.get(tokenIndex).getTokenText();
+        //Local expression node to evaluate into
+        TreeNode parentExprNode = new TreeNode(new State (State.stateType.S_EXPR));
+
+        //Go back an index if we are nested
+        if(isNestedExpr)
+            tokenIndex--;
 
         // s_expr -> <str_literal>
-        if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.String)){
-            str_literal(node.addTreeNode(new State(State.stateType.STR_LITERAL)));
+        if(isNestedExpr ||tokenStream.get(tokenIndex).getTokenType().equals(TokenType.String)){
+            str_literal(parentExprNode.addTreeNode(new State(State.stateType.STR_LITERAL)));
         }
 
         // s_expr -> concat <start_paren > <s_expr >, <s_expr > <end_paren>
         else if(tokenText.equals(CONCAT)){
 
             // Adds the concat terminal
-            node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
+            parentExprNode.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
             tokenIndex++;
 
             // The start_paren terminal
             if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.StartParen)) {
-                node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex), tokenIndex));
+                parentExprNode.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex), tokenIndex));
                 tokenIndex++;
             }
             else LogError.log(LogError.ErrorType.SYNTAX, "Expected '(', got " +
@@ -746,11 +766,12 @@ public class Parser {
                     tokenStream.get(tokenIndex));
 
             // Adds the first s_expr
-            s_expr(node.addTreeNode(new State(State.stateType.S_EXPR)));
+            s_expr(true);//s_expr(parentExprNode.addTreeNode(new State(State.stateType.S_EXPR)));
+
 
             // Adds the comma terminal
             if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.Comma)) {
-                node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
+                parentExprNode.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
                 tokenIndex++;
             }
             else LogError.log(LogError.ErrorType.SYNTAX, "Expected ',', got " +
@@ -758,10 +779,10 @@ public class Parser {
                     tokenStream.get(tokenIndex));
 
             // Adds the second s_expr
-            s_expr(node.addTreeNode(new State(State.stateType.S_EXPR)));
+            s_expr(true);//s_expr(parentExprNode.addTreeNode(new State(State.stateType.S_EXPR)));
 
             if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndParen)) {
-                node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex), tokenIndex));
+                parentExprNode.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex), tokenIndex));
                 tokenIndex++;
             }
             else LogError.log(LogError.ErrorType.SYNTAX, "Expected ')', got " +
@@ -773,12 +794,12 @@ public class Parser {
         else if(tokenText.equals(CHARAT)){
 
             // The charAt terminal
-            node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
+            parentExprNode.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
             tokenIndex++;
 
             // Adds the start paren
             if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.StartParen)) {
-                node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex), tokenIndex));
+                parentExprNode.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex), tokenIndex));
                 tokenIndex++;
             }
             else LogError.log(LogError.ErrorType.SYNTAX, "Expected '(', got " +
@@ -786,11 +807,11 @@ public class Parser {
                     tokenStream.get(tokenIndex));
 
             // Adds the s_expr
-            s_expr(node.addTreeNode(new State(State.stateType.S_EXPR)));
+            s_expr(true);//s_expr(parentExprNode.addTreeNode(new State(State.stateType.S_EXPR)));
 
             // Adds the comma terminal
             if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.Comma)) {
-                node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
+                parentExprNode.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
                 tokenIndex++;
             }
             else LogError.log(LogError.ErrorType.SYNTAX, "Expected ',', got " +
@@ -798,11 +819,11 @@ public class Parser {
                     tokenStream.get(tokenIndex));
 
             // Adds the i_expr
-            node.addTreeNode(i_expr());
+            parentExprNode.addTreeNode(i_expr());
 
             // Adds the end paren
             if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndParen)) {
-                node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex), tokenIndex));
+                parentExprNode.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex), tokenIndex));
                 tokenIndex++;
             }
             else LogError.log(LogError.ErrorType.SYNTAX, "Expected ')', got " +
@@ -812,7 +833,7 @@ public class Parser {
 
         // s_expr-> <id>
         else if(tokenStream.get(tokenIndex).getTokenType()==TokenType.ID){
-            node.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex), tokenIndex));
+            parentExprNode.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex), tokenIndex));
             tokenIndex++;
         }
 
