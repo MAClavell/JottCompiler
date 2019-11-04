@@ -123,7 +123,7 @@ public class Parser {
                 tokenIndex++;
                 node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex), tokenIndex));
                 tokenIndex++;
-                i_expr(node.addTreeNode(new State(State.stateType.I_EXPR)), false);
+                //i_expr(node.addTreeNode(new State(State.stateType.I_EXPR)), false);
                 node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex), tokenIndex));
                 tokenIndex++;
                 node.addTreeNode(new State(State.stateType.START_BLCK, tokenStream.get(tokenIndex), tokenIndex));
@@ -140,7 +140,7 @@ public class Parser {
                 node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex), tokenIndex));
                 tokenIndex++;
                 asmt(node.addTreeNode(new State(State.stateType.ASMT)));
-                i_expr(node.addTreeNode(new State(State.stateType.I_EXPR)), false);
+                //i_expr(node.addTreeNode(new State(State.stateType.I_EXPR)), false);
                 node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex), tokenIndex));
                 tokenIndex++;
                 r_asmt(node.addTreeNode(new State(State.stateType.R_ASMT)));
@@ -238,36 +238,21 @@ public class Parser {
     private static void expr(TreeNode node) {
         checkSize();
 
-        // The expression whose 2nd or 3rd token is a relational op
-        // TO DO NOT SURE ON CORRECTNESS QUITE YET
-        if (isTokenTypeRelational(tokenIndex + 1) ||
-                isTokenTypeRelational(tokenIndex + 2)) {
-            if(isTokenTypeString(tokenIndex)) {
-                i_expr(node.addTreeNode(new State(State.stateType.I_EXPR)), false);
-            }
-            else if(isTokenTypeInteger(tokenIndex)) {
-                i_expr(node.addTreeNode(new State(State.stateType.I_EXPR)), false);
-            }
-            else if(isTokenTypeDouble(tokenIndex)) {
-                i_expr(node.addTreeNode(new State(State.stateType.I_EXPR)), false);
-            }
-        }
-
         // The expression starting with a str_literal (in s_expr)
         // The expression starting with concat (in s_expr)
         // The expression starting with charAt (in s_expr)
-        else if(isTokenTypeString(tokenIndex)) {
+        if(isTokenTypeString(tokenStream.get(tokenIndex))) {
             s_expr(node.addTreeNode(new State(State.stateType.S_EXPR)));
         }
 
         // If the first token is an integer or a -integer/+integer (in i_expr)
         else if(isTokenTypeInteger(tokenIndex)){
-            i_expr(node, false);
+            node.addTreeNode(i_expr());
         }
 
         // If the first token is a double or a -double/+double (in d_expr)
         else if(isTokenTypeDouble(tokenIndex)){
-            d_expr(node, false);
+            node.addTreeNode(d_expr(false));
         }
 
         // If it is an id
@@ -278,13 +263,13 @@ public class Parser {
                 // If the id is a double
                 if(globalScope.getScopedSymbol(tokenStream.get(tokenIndex).getTokenText(), tokenIndex).getType()==
                         Symbol.variableType.DOUBLE){
-                    d_expr(node, false);
+                    node.addTreeNode(d_expr(false));
                 }
 
                 // If the id is an integer
                 else if(globalScope.getScopedSymbol(tokenStream.get(tokenIndex).getTokenText(), tokenIndex).getType()==
                         Symbol.variableType.INTEGER){
-                    i_expr(node, false);
+                    node.addTreeNode(i_expr());
                 }
 
                 else{
@@ -301,35 +286,6 @@ public class Parser {
         else LogError.log(LogError.ErrorType.SYNTAX, "Expected an Expression, got " +
                             tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
                     tokenStream.get(tokenIndex));
-    }
-
-    private static boolean isTokenTypeRelational(int index) {
-        return (tokenStream.get(index).getTokenType() == TokenType.Eq ||
-                tokenStream.get(index).getTokenType() == TokenType.NotEq ||
-                tokenStream.get(index).getTokenType() == TokenType.Greater ||
-                tokenStream.get(index).getTokenType() == TokenType.GreaterEq ||
-                tokenStream.get(index).getTokenType() == TokenType.Less ||
-                tokenStream.get(index).getTokenType() == TokenType.LessEq);
-    }
-
-    private static boolean isTokenTypeString(int index) {
-        return (tokenStream.get(index).getTokenType().equals(TokenType.String) ||
-                tokenStream.get(index).getTokenText().equals(CONCAT) ||
-                tokenStream.get(index).getTokenText().equals(CHARAT));
-    }
-
-    private static boolean isTokenTypeInteger(int index) {
-        return (tokenStream.get(index).getTokenType()==TokenType.Integer ||
-                ((tokenStream.get(index).getTokenType()==TokenType.Minus ||
-                        tokenStream.get(index).getTokenType()==TokenType.Plus) &&
-                        tokenStream.get(index+1).getTokenType()==TokenType.Integer));
-    }
-
-    private static boolean isTokenTypeDouble(int index) {
-        return (tokenStream.get(index).getTokenType()==TokenType.Double ||
-                ((tokenStream.get(index).getTokenType()==TokenType.Minus ||
-                        tokenStream.get(index).getTokenType()==TokenType.Plus) &&
-                        tokenStream.get(index+1).getTokenType()==TokenType.Double));
     }
 
     private static void print(TreeNode node) {
@@ -433,10 +389,10 @@ public class Parser {
         // Adds the expr
         switch (varType) {
             case DOUBLE:
-                d_expr(node, false);
+                node.addTreeNode(d_expr(false));
                 break;
             case INTEGER:
-                i_expr(node, false);
+                node.addTreeNode(i_expr());
                 break;
             case STRING:
                 s_expr(node.addTreeNode(new State(State.stateType.S_EXPR)));
@@ -487,11 +443,10 @@ public class Parser {
     /**
      * Evaluate the upcoming tokens in the tokenstream to see if it is an d_expr
      * This function will add it to the send in tree node if it is
-     * @param node The topmost node to add the finished d_expr to
      * @param isNestedExpr FALSE by default. Flag to see if we are evaluating a nested d_expr
      * @return TreeNode finished expression (used for recursion and nested expressions)
      */
-    private static TreeNode d_expr(TreeNode node, boolean isNestedExpr) {
+    private static TreeNode d_expr(boolean isNestedExpr) {
         //Local expression node to evaluate into
         TreeNode parentExprNode = new TreeNode(new State (State.stateType.D_EXPR));
 
@@ -502,7 +457,7 @@ public class Parser {
         //Check first parameter to see if it's an ID (skip over if we are nested)
         if(isNestedExpr || tokenStream.get(tokenIndex).getTokenType().equals(TokenType.ID)){
             //Lookahead to see if there's an operator
-            if(isTokenOp(tokenStream.get(tokenIndex+1)) || isTokenRelOp(tokenStream.get(tokenIndex+1))) {
+            if(isTokenOp(tokenStream.get(tokenIndex+1))) {
                 //Since this IS a math expression, add the ID as a SEPARATE D_EXPR
                 if(!isNestedExpr) {
                     TreeNode idNode = parentExprNode.addTreeNode(new State(State.stateType.D_EXPR));
@@ -511,12 +466,11 @@ public class Parser {
                 tokenIndex++;
 
                 //Find the third component of the D_EXPR
-                return d_exprThirdComponent(node, parentExprNode);
+                return d_exprThirdComponent(parentExprNode);
             }
             //Since this is NOT a math expression, add the ID to THIS D_EXPR
             else {
                 parentExprNode.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex), tokenIndex));
-                node.addTreeNode(parentExprNode); //add to topmost node
                 tokenIndex++;
                 return parentExprNode; //hit the REAL end of an D_EXPR
             }
@@ -526,14 +480,13 @@ public class Parser {
         //Automatically adds integer to the node if one exists
         else if(isNestedExpr || dbl(parentExprNode)) {
             //See if there's an operator
-            if(isTokenOp(tokenStream.get(tokenIndex)) || isTokenRelOp(tokenStream.get(tokenIndex))) {
+            if(isTokenOp(tokenStream.get(tokenIndex))) {
                 //IS a math expression
                 //Find the third component of the D_EXPR
-                return d_exprThirdComponent(node, parentExprNode);
+                return d_exprThirdComponent(parentExprNode);
             }
             //NOT a math expression
             else {
-                node.addTreeNode(parentExprNode); //add to topmost node
                 return parentExprNode; //hit the REAL end of an D_EXPR
             }
         }
@@ -545,11 +498,10 @@ public class Parser {
     /**
      * Evaluate the third component of an d_expr.
      * NEVER CALL THIS FUNCTION OUTSIDE OF d_expr()
-     * @param node The topmost node to add the finished d_expr to
      * @param parentExprNode The current expression node we are evaluating
      * @return TreeNode finished expression (used for recursion and nested expressions)
      */
-    private static TreeNode d_exprThirdComponent(TreeNode node, TreeNode parentExprNode)
+    private static TreeNode d_exprThirdComponent(TreeNode parentExprNode)
     {
         //Add the operator to the D_EXPR
         parentExprNode.addTreeNode(new State(State.stateType.OP, tokenStream.get(tokenIndex), tokenIndex));
@@ -570,10 +522,10 @@ public class Parser {
         if(foundDouble || foundID)
         {
             //Check if there is ANOTHER operator, meaning we are nested
-            if (isTokenOp(tokenStream.get(tokenIndex)) || isTokenRelOp(tokenStream.get(tokenIndex)))
+            if (isTokenOp(tokenStream.get(tokenIndex)))
             {
                 //Create and run nested expression
-                TreeNode res = d_expr(node, true);
+                TreeNode res = d_expr(true);
                 //Since we nested, we HAVE to add the previous expression to the FRONT of the D_EXPR
                 //This is just how the grammar works
                 res.addTreeNodeToFront(parentExprNode);
@@ -581,7 +533,6 @@ public class Parser {
             }
             //Expression is finish, add it and return
             else {
-                node.addTreeNode(parentExprNode); //add to topmost node
                 return parentExprNode; //hit the REAL end of an D_EXPR
             }
         }
@@ -620,14 +571,52 @@ public class Parser {
         return false;
     }
 
+    private static TreeNode i_expr() {
+
+        TreeNode first = null;
+        /*
+        first = s_expr(false);
+        if(first != null)
+        {
+            //Check for relative op and another i_expr
+        }*/
+
+        //Find double relations
+        if(isTokenTypeDouble(tokenIndex)) {
+            first = d_expr(false);
+            if (first != null) {
+                //Check for relative op and another d_expr
+                if (isTokenRelOp(tokenStream.get(tokenIndex))) {
+                    TreeNode relOp = new TreeNode(new State(State.stateType.REL_OP, tokenStream.get(tokenIndex), tokenIndex));
+                    tokenIndex++;
+                    TreeNode second = d_expr(false);
+                    if (second != null) {
+                        TreeNode root = new TreeNode(new State(State.stateType.I_EXPR));
+                        root.addTreeNode(first);
+                        root.addTreeNode(relOp);
+                        root.addTreeNode(second);
+                        return root;
+                    }
+                }
+            }
+        }
+
+        first = i_expr_math(false);
+        if(first != null)
+        {
+            //Check for relative op and another i_expr
+        }
+
+        return first;
+    }
+
     /**
      * Evaluate the upcoming tokens in the tokenstream to see if it is an i_expr
      * This function will add it to the send in tree node if it is
-     * @param node The topmost node to add the finished i_expr to
      * @param isNestedExpr FALSE by default. Flag to see if we are evaluating a nested i_expr
      * @return TreeNode finished expression (used for recursion and nested expressions)
      */
-    private static TreeNode i_expr(TreeNode node, boolean isNestedExpr) {
+    private static TreeNode i_expr_math(boolean isNestedExpr) {
         //Local expression node to evaluate into
         TreeNode parentExprNode = new TreeNode(new State (State.stateType.I_EXPR));
 
@@ -638,7 +627,7 @@ public class Parser {
         //Check first parameter to see if it's an ID (skip over if we are nested)
         if(isNestedExpr || tokenStream.get(tokenIndex).getTokenType().equals(TokenType.ID)){
             //Lookahead to see if there's an operator
-            if(isTokenOp(tokenStream.get(tokenIndex+1)) || isTokenRelOp(tokenStream.get(tokenIndex+1))) {
+            if(isTokenOp(tokenStream.get(tokenIndex+1))) {
                 //Since this IS a math expression, add the ID as a SEPARATE I_EXPR
                 if(!isNestedExpr) {
                     TreeNode idNode = parentExprNode.addTreeNode(new State(State.stateType.I_EXPR));
@@ -647,12 +636,12 @@ public class Parser {
                 tokenIndex++;
 
                 //Find the third component of the I_EXPR
-                return i_exprThirdComponent(node, parentExprNode);
+                return i_exprThirdComponent(parentExprNode);
             }
             //Since this is NOT a math expression, add the ID to THIS I_EXPR
             else {
                 parentExprNode.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex), tokenIndex));
-                node.addTreeNode(parentExprNode); //add to topmost node
+                //node.addTreeNode(parentExprNode); //add to topmost node
                 tokenIndex++;
                 return parentExprNode; //hit the REAL end of an I_EXPR
             }
@@ -662,14 +651,14 @@ public class Parser {
         //Automatically adds integer to the node if one exists
         else if(isNestedExpr || integer(parentExprNode)) {
             //See if there's an operator
-            if(isTokenOp(tokenStream.get(tokenIndex)) || isTokenRelOp(tokenStream.get(tokenIndex))) {
+            if(isTokenOp(tokenStream.get(tokenIndex))) {
                 //IS a math expression
                 //Find the third component of the I_EXPR
-                return i_exprThirdComponent(node, parentExprNode);
+                return i_exprThirdComponent(parentExprNode);
             }
             //NOT a math expression
             else {
-                node.addTreeNode(parentExprNode); //add to topmost node
+                //node.addTreeNode(parentExprNode); //add to topmost node
                 return parentExprNode; //hit the REAL end of an I_EXPR
             }
         }
@@ -681,11 +670,10 @@ public class Parser {
     /**
      * Evaluate the third component of an i_expr.
      * NEVER CALL THIS FUNCTION OUTSIDE OF i_expr()
-     * @param node The topmost node to add the finished i_expr to
      * @param parentExprNode The current expression node we are evaluating
      * @return TreeNode finished expression (used for recursion and nested expressions)
      */
-    private static TreeNode i_exprThirdComponent(TreeNode node, TreeNode parentExprNode)
+    private static TreeNode i_exprThirdComponent(TreeNode parentExprNode)
     {
         //Add the operator to the I_EXPR
         parentExprNode.addTreeNode(new State(State.stateType.OP, tokenStream.get(tokenIndex), tokenIndex));
@@ -706,10 +694,10 @@ public class Parser {
         if(foundInteger || foundID)
         {
             //Check if there is ANOTHER operator, meaning we are nested
-            if (isTokenOp(tokenStream.get(tokenIndex)) || isTokenRelOp(tokenStream.get(tokenIndex)))
+            if (isTokenOp(tokenStream.get(tokenIndex)))
             {
                 //Create and run nested expression
-                TreeNode res = i_expr(node, true);
+                TreeNode res = i_expr_math(true);
                 //Since we nested, we HAVE to add the previous expression to the FRONT of the I_EXPR
                 //This is just how the grammar works
                 res.addTreeNodeToFront(parentExprNode);
@@ -717,7 +705,7 @@ public class Parser {
             }
             //Expression is finish, add it and return
             else {
-                node.addTreeNode(parentExprNode); //add to topmost node
+                //node.addTreeNode(parentExprNode); //add to topmost node
                 return parentExprNode; //hit the REAL end of an I_EXPR
             }
         }
@@ -810,7 +798,7 @@ public class Parser {
                     tokenStream.get(tokenIndex));
 
             // Adds the i_expr
-            i_expr(node, false);
+            node.addTreeNode(i_expr());
 
             // Adds the end paren
             if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndParen)) {
@@ -885,6 +873,26 @@ public class Parser {
                 tok.getTokenType()==TokenType.GreaterEq ||
                 tok.getTokenType()==TokenType.Less ||
                 tok.getTokenType()==TokenType.LessEq;
+    }
+
+    private static boolean isTokenTypeString(Token tok) {
+        return (tok.getTokenType().equals(TokenType.String) ||
+                tok.getTokenText().equals(CONCAT) ||
+                tok.getTokenText().equals(CHARAT));
+    }
+
+    private static boolean isTokenTypeInteger(int index) {
+        return (tokenStream.get(index).getTokenType()==TokenType.Integer ||
+                ((tokenStream.get(index).getTokenType()==TokenType.Minus ||
+                        tokenStream.get(index).getTokenType()==TokenType.Plus) &&
+                        tokenStream.get(index+1).getTokenType()==TokenType.Integer));
+    }
+
+    private static boolean isTokenTypeDouble(int index) {
+        return (tokenStream.get(index).getTokenType()==TokenType.Double ||
+                ((tokenStream.get(index).getTokenType()==TokenType.Minus ||
+                        tokenStream.get(index).getTokenType()==TokenType.Plus) &&
+                        tokenStream.get(index+1).getTokenType()==TokenType.Double));
     }
 
     /**
