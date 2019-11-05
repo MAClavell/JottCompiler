@@ -574,6 +574,7 @@ public class Parser {
 
     private static TreeNode i_expr() {
         TreeNode root = null;
+        boolean isAfterRelation = false;
 
         //Find string relations
         if(isTokenTypeString(tokenStream.get(tokenIndex))) {
@@ -589,6 +590,7 @@ public class Parser {
                         root.addTreeNode(first);
                         root.addTreeNode(relOp);
                         root.addTreeNode(second);
+                        isAfterRelation = true;
                     }
                 }
             }
@@ -608,13 +610,15 @@ public class Parser {
                         root.addTreeNode(first);
                         root.addTreeNode(relOp);
                         root.addTreeNode(second);
+                        isAfterRelation = true;
                     }
                 }
             }
         }
 
+        //Integers are special because normal integer operations still need to occur
         //Try normal or relative integer operation
-        TreeNode first = i_expr_normal(false);
+        TreeNode first = i_expr_normal(false, isAfterRelation);
         if(first != null) {
             //Check for relative op and another i_expr
             if (isTokenRelOp(tokenStream.get(tokenIndex))) {
@@ -626,6 +630,7 @@ public class Parser {
                     root.addTreeNode(first);
                     root.addTreeNode(relOp);
                     root.addTreeNode(second);
+                    isAfterRelation = true;
                 }
             }
             else return first;
@@ -640,7 +645,7 @@ public class Parser {
      * @param isNestedExpr FALSE by default. Flag to see if we are evaluating a nested i_expr
      * @return TreeNode finished expression (used for recursion and nested expressions)
      */
-    private static TreeNode i_expr_normal(boolean isNestedExpr) {
+    private static TreeNode i_expr_normal(boolean isNestedExpr, boolean isAfterRelation) {
         //Local expression node to evaluate into
         TreeNode parentExprNode = new TreeNode(new State (State.stateType.I_EXPR));
 
@@ -684,7 +689,7 @@ public class Parser {
                 return parentExprNode; //hit the REAL end of an I_EXPR
             }
         }
-        else numExprError("Integer");
+        else if(!isAfterRelation) numExprError("Integer");
 
         return null; //fail (should never reach here as we are exiting on errors)
     }
@@ -719,7 +724,7 @@ public class Parser {
             if (isTokenOp(tokenStream.get(tokenIndex)))
             {
                 //Create and run nested expression
-                TreeNode res = i_expr_normal(true);
+                TreeNode res = i_expr_normal(true, false);
                 //Since we nested, we HAVE to add the previous expression to the FRONT of the I_EXPR
                 //This is just how the grammar works
                 TreeNode attachTo = res;
