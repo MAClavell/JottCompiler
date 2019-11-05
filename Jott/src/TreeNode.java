@@ -82,7 +82,14 @@ public class TreeNode {
     @Override
     public String toString() {
         String output = "";
-        output += state.getState() + ", \n";
+        output += state.getState();
+        if(getToken() != null)
+        {
+            TokenType type = getToken().getTokenType();
+            if(type == TokenType.Integer || type == TokenType.Double || type == TokenType.String)
+                output += " " + getToken().getTokenText();
+        }
+        output += ", \n";
         indentation++;
         for(TreeNode branch : branches)
         {

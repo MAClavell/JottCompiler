@@ -1,7 +1,4 @@
-import com.sun.source.tree.Tree;
-
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class Parser {
 
@@ -242,7 +239,7 @@ public class Parser {
         // The expression starting with concat (in s_expr)
         // The expression starting with charAt (in s_expr)
         if(isTokenTypeString(tokenStream.get(tokenIndex))) {
-            //node.addTreeNode(s_expr(false));//s_expr(node.addTreeNode(new State(State.stateType.S_EXPR)));
+            node.addTreeNode(s_expr());
         }
 
         // If the first token is an integer or a -integer/+integer (in i_expr)
@@ -273,7 +270,7 @@ public class Parser {
                 }
 
                 else{
-                    //node.addTreeNode(s_expr(false));//s_expr(node.addTreeNode(new State(State.stateType.S_EXPR)));
+                    node.addTreeNode(s_expr());
                 }
             }
             //Variable does not exists
@@ -395,7 +392,7 @@ public class Parser {
                 node.addTreeNode(i_expr());
                 break;
             case STRING:
-                //node.addTreeNode(s_expr(false));//s_expr(node.addTreeNode(new State(State.stateType.S_EXPR)));
+                node.addTreeNode(s_expr());
                 break;
             default:
                 break;
@@ -528,8 +525,12 @@ public class Parser {
                 TreeNode res = d_expr(true);
                 //Since we nested, we HAVE to add the previous expression to the FRONT of the D_EXPR
                 //This is just how the grammar works
-                res.addTreeNodeToFront(parentExprNode);
-                return parentExprNode;
+                TreeNode attachTo = res;
+                while(attachTo.getChildren().get(0).getState().getState() != State.stateType.OP)
+                    attachTo = attachTo.getChildren().get(0);
+
+                attachTo.addTreeNodeToFront(parentExprNode);
+                return res;
             }
             //Expression is finish, add it and return
             else {
@@ -572,32 +573,30 @@ public class Parser {
     }
 
     private static TreeNode i_expr() {
-
-        TreeNode first = null;
+        TreeNode root = null;
 
         //Find string relations
         if(isTokenTypeString(tokenStream.get(tokenIndex))) {
-            //first = s_expr(false);
+            TreeNode first = s_expr();
             if (first != null) {
                 //Check for relative op and another s_expr
                 if (isTokenRelOp(tokenStream.get(tokenIndex))) {
                     TreeNode relOp = new TreeNode(new State(State.stateType.REL_OP, tokenStream.get(tokenIndex), tokenIndex));
                     tokenIndex++;
-                    TreeNode second = null;// = s_expr(false);
+                    TreeNode second = s_expr();
                     if (second != null) {
-                        TreeNode root = new TreeNode(new State(State.stateType.I_EXPR));
+                        root = new TreeNode(new State(State.stateType.I_EXPR));
                         root.addTreeNode(first);
                         root.addTreeNode(relOp);
                         root.addTreeNode(second);
-                        return root;
                     }
                 }
             }
         }
 
         //Find double relations
-        if(isTokenTypeDouble(tokenIndex)) {
-            first = d_expr(false);
+        else if(isTokenTypeDouble(tokenIndex)) {
+            TreeNode first = d_expr(false);
             if (first != null) {
                 //Check for relative op and another d_expr
                 if (isTokenRelOp(tokenStream.get(tokenIndex))) {
@@ -605,23 +604,34 @@ public class Parser {
                     tokenIndex++;
                     TreeNode second = d_expr(false);
                     if (second != null) {
-                        TreeNode root = new TreeNode(new State(State.stateType.I_EXPR));
+                        root = new TreeNode(new State(State.stateType.I_EXPR));
                         root.addTreeNode(first);
                         root.addTreeNode(relOp);
                         root.addTreeNode(second);
-                        return root;
                     }
                 }
             }
         }
 
-        first = i_expr_math(false);
-        if(first != null)
-        {
+        //Try normal or relative integer operation
+        TreeNode first = i_expr_normal(false);
+        if(first != null) {
             //Check for relative op and another i_expr
+            if (isTokenRelOp(tokenStream.get(tokenIndex))) {
+                TreeNode relOp = new TreeNode(new State(State.stateType.REL_OP, tokenStream.get(tokenIndex), tokenIndex));
+                tokenIndex++;
+                TreeNode second = i_expr();
+                if (second != null) {
+                    root = new TreeNode(new State(State.stateType.I_EXPR));
+                    root.addTreeNode(first);
+                    root.addTreeNode(relOp);
+                    root.addTreeNode(second);
+                }
+            }
+            else return first;
         }
 
-        return first;
+        return root;
     }
 
     /**
@@ -630,7 +640,7 @@ public class Parser {
      * @param isNestedExpr FALSE by default. Flag to see if we are evaluating a nested i_expr
      * @return TreeNode finished expression (used for recursion and nested expressions)
      */
-    private static TreeNode i_expr_math(boolean isNestedExpr) {
+    private static TreeNode i_expr_normal(boolean isNestedExpr) {
         //Local expression node to evaluate into
         TreeNode parentExprNode = new TreeNode(new State (State.stateType.I_EXPR));
 
@@ -655,7 +665,6 @@ public class Parser {
             //Since this is NOT a math expression, add the ID to THIS I_EXPR
             else {
                 parentExprNode.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex), tokenIndex));
-                //node.addTreeNode(parentExprNode); //add to topmost node
                 tokenIndex++;
                 return parentExprNode; //hit the REAL end of an I_EXPR
             }
@@ -663,7 +672,7 @@ public class Parser {
 
         //Check first parameter to see if it's an Integer (skip over if we are nested)
         //Automatically adds integer to the node if one exists
-        else if(isNestedExpr || integer(parentExprNode)) {
+        else if(integer(parentExprNode)) {
             //See if there's an operator
             if(isTokenOp(tokenStream.get(tokenIndex))) {
                 //IS a math expression
@@ -672,7 +681,6 @@ public class Parser {
             }
             //NOT a math expression
             else {
-                //node.addTreeNode(parentExprNode); //add to topmost node
                 return parentExprNode; //hit the REAL end of an I_EXPR
             }
         }
@@ -707,19 +715,22 @@ public class Parser {
         //Check for nested statements or add
         if(foundInteger || foundID)
         {
-            //Check if there is ANOTHER operator, meaning we are nested
+            //Check if there is ANOTHER operator or int, meaning we are nested
             if (isTokenOp(tokenStream.get(tokenIndex)))
             {
                 //Create and run nested expression
-                TreeNode res = i_expr_math(true);
+                TreeNode res = i_expr_normal(true);
                 //Since we nested, we HAVE to add the previous expression to the FRONT of the I_EXPR
                 //This is just how the grammar works
-                res.addTreeNodeToFront(parentExprNode);
-                return parentExprNode;
+                TreeNode attachTo = res;
+                while(attachTo.getChildren().get(0).getState().getState() != State.stateType.OP)
+                    attachTo = attachTo.getChildren().get(0);
+
+                attachTo.addTreeNodeToFront(parentExprNode);
+                return res;
             }
-            //Expression is finish, add it and return
+            //Expression is finished, return
             else {
-                //node.addTreeNode(parentExprNode); //add to topmost node
                 return parentExprNode; //hit the REAL end of an I_EXPR
             }
         }
@@ -734,19 +745,16 @@ public class Parser {
         tokenIndex++;
     }
 
-    private static void s_expr(boolean isNestedExpr) {
+    private static TreeNode s_expr() {
 
         String tokenText=tokenStream.get(tokenIndex).getTokenText();
         //Local expression node to evaluate into
         TreeNode parentExprNode = new TreeNode(new State (State.stateType.S_EXPR));
 
-        //Go back an index if we are nested
-        if(isNestedExpr)
-            tokenIndex--;
-
         // s_expr -> <str_literal>
-        if(isNestedExpr ||tokenStream.get(tokenIndex).getTokenType().equals(TokenType.String)){
+        if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.String)){
             str_literal(parentExprNode.addTreeNode(new State(State.stateType.STR_LITERAL)));
+            return parentExprNode;
         }
 
         // s_expr -> concat <start_paren > <s_expr >, <s_expr > <end_paren>
@@ -766,8 +774,7 @@ public class Parser {
                     tokenStream.get(tokenIndex));
 
             // Adds the first s_expr
-            s_expr(true);//s_expr(parentExprNode.addTreeNode(new State(State.stateType.S_EXPR)));
-
+            parentExprNode.addTreeNode(s_expr());
 
             // Adds the comma terminal
             if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.Comma)) {
@@ -779,7 +786,7 @@ public class Parser {
                     tokenStream.get(tokenIndex));
 
             // Adds the second s_expr
-            s_expr(true);//s_expr(parentExprNode.addTreeNode(new State(State.stateType.S_EXPR)));
+            parentExprNode.addTreeNode(s_expr());
 
             if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndParen)) {
                 parentExprNode.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex), tokenIndex));
@@ -788,6 +795,8 @@ public class Parser {
             else LogError.log(LogError.ErrorType.SYNTAX, "Expected ')', got " +
                             tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
                     tokenStream.get(tokenIndex));
+
+            return parentExprNode;
         }
 
         // s_expr -> charAt <start_paren > <s_expr >, <i_expr > <end_paren>
@@ -807,7 +816,7 @@ public class Parser {
                     tokenStream.get(tokenIndex));
 
             // Adds the s_expr
-            s_expr(true);//s_expr(parentExprNode.addTreeNode(new State(State.stateType.S_EXPR)));
+            parentExprNode.addTreeNode(s_expr());
 
             // Adds the comma terminal
             if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.Comma)) {
@@ -829,12 +838,15 @@ public class Parser {
             else LogError.log(LogError.ErrorType.SYNTAX, "Expected ')', got " +
                             tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
                     tokenStream.get(tokenIndex));
+
+            return parentExprNode;
         }
 
         // s_expr-> <id>
         else if(tokenStream.get(tokenIndex).getTokenType()==TokenType.ID){
             parentExprNode.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex), tokenIndex));
             tokenIndex++;
+            return parentExprNode;
         }
 
         // Error
@@ -843,6 +855,8 @@ public class Parser {
                             tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
                     tokenStream.get(tokenIndex));
         }
+
+        return null;
     }
 
 
