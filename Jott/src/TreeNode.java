@@ -85,8 +85,9 @@ public class TreeNode {
         output += state.getState();
         if(getToken() != null)
         {
-            TokenType type = getToken().getTokenType();
-            if(type == TokenType.Integer || type == TokenType.Double || type == TokenType.String)
+            State.stateType type = getState().getState();
+            if(type == State.stateType.DIGIT || type == State.stateType.OP || type == State.stateType.REL_OP
+                || type == State.stateType.STR)
                 output += " " + getToken().getTokenText();
         }
         output += ", \n";

@@ -574,7 +574,6 @@ public class Parser {
 
     private static TreeNode i_expr() {
         TreeNode root = null;
-        boolean isAfterRelation = false;
 
         //Find string relations
         if(isTokenTypeString(tokenStream.get(tokenIndex))) {
@@ -590,7 +589,6 @@ public class Parser {
                         root.addTreeNode(first);
                         root.addTreeNode(relOp);
                         root.addTreeNode(second);
-                        isAfterRelation = true;
                     }
                 }
             }
@@ -604,39 +602,69 @@ public class Parser {
                 if (isTokenRelOp(tokenStream.get(tokenIndex))) {
                     TreeNode relOp = new TreeNode(new State(State.stateType.REL_OP, tokenStream.get(tokenIndex), tokenIndex));
                     tokenIndex++;
-                    TreeNode second = d_expr(false);
-                    if (second != null) {
+                    TreeNode dblRoot = new TreeNode((new State(State.stateType.D_EXPR)));
+                    boolean foundSecond = dbl(dblRoot);
+                    if (foundSecond) {
                         root = new TreeNode(new State(State.stateType.I_EXPR));
                         root.addTreeNode(first);
                         root.addTreeNode(relOp);
-                        root.addTreeNode(second);
-                        isAfterRelation = true;
+                        root.addTreeNode(dblRoot);
                     }
                 }
             }
         }
 
         //Integers are special because normal integer operations still need to occur
-        //Try normal or relative integer operation
-        TreeNode first = i_expr_normal(false, isAfterRelation);
-        if(first != null) {
-            //Check for relative op and another i_expr
-            if (isTokenRelOp(tokenStream.get(tokenIndex))) {
-                TreeNode relOp = new TreeNode(new State(State.stateType.REL_OP, tokenStream.get(tokenIndex), tokenIndex));
-                tokenIndex++;
-                TreeNode second = i_expr();
-                if (second != null) {
-                    root = new TreeNode(new State(State.stateType.I_EXPR));
-                    root.addTreeNode(first);
-                    root.addTreeNode(relOp);
-                    root.addTreeNode(second);
-                    isAfterRelation = true;
+        //Try normal integer operations and integer relational operatons
+        if(root == null)
+        {
+            TreeNode first = i_exprNormal(false);
+            if (first != null) {
+                //Check for relative op and another i_expr
+                if (isTokenRelOp(tokenStream.get(tokenIndex))) {
+                    return i_exprIntRelationThirdComponent(new TreeNode(new State(State.stateType.I_EXPR)), first);
                 }
+                //Didn't find a relational operation
+                else return first;
             }
-            else return first;
+            //Found nothing at all
+            else return null;
+        }
+        // check if there's any integer math after dbl or string
+        else if(isTokenOp(tokenStream.get(tokenIndex))) {
+            TreeNode newRoot = new TreeNode(new State(State.stateType.I_EXPR));
+            newRoot.addTreeNode(root);
+            TreeNode foundIntMath = i_exprThirdComponent(newRoot);
+            if(foundIntMath != null)
+                return foundIntMath;
+        }
+        else if(isTokenRelOp(tokenStream.get(tokenIndex)))
+        {
+            TreeNode newRoot = new TreeNode(new State(State.stateType.I_EXPR));
+            newRoot.addTreeNode(root);
+            TreeNode nestedRelations = i_exprIntRelationThirdComponent(newRoot, root);
+            if(nestedRelations != null)
+                return nestedRelations;
+        }
+        return root;
+    }
+
+    private static TreeNode i_exprIntRelationThirdComponent(TreeNode root, TreeNode first)
+    {
+        TreeNode relOp = new TreeNode(new State(State.stateType.REL_OP, tokenStream.get(tokenIndex), tokenIndex));
+        tokenIndex++;
+        TreeNode second = i_exprNormal(true);
+        if (second != null) {
+            root = new TreeNode(new State(State.stateType.I_EXPR));
+            root.addTreeNode(first);
+            root.addTreeNode(relOp);
+            root.addTreeNode(second);
+            if(isTokenRelOp(tokenStream.get(tokenIndex)))
+                return i_exprIntRelationThirdComponent(new TreeNode(new State(State.stateType.I_EXPR)), root);
+            return root;
         }
 
-        return root;
+        return null;
     }
 
     /**
@@ -645,7 +673,7 @@ public class Parser {
      * @param isNestedExpr FALSE by default. Flag to see if we are evaluating a nested i_expr
      * @return TreeNode finished expression (used for recursion and nested expressions)
      */
-    private static TreeNode i_expr_normal(boolean isNestedExpr, boolean isAfterRelation) {
+    private static TreeNode i_exprNormal(boolean isNestedExpr) {
         //Local expression node to evaluate into
         TreeNode parentExprNode = new TreeNode(new State (State.stateType.I_EXPR));
 
@@ -689,7 +717,7 @@ public class Parser {
                 return parentExprNode; //hit the REAL end of an I_EXPR
             }
         }
-        else if(!isAfterRelation) numExprError("Integer");
+        else numExprError("Integer");
 
         return null; //fail (should never reach here as we are exiting on errors)
     }
@@ -724,7 +752,7 @@ public class Parser {
             if (isTokenOp(tokenStream.get(tokenIndex)))
             {
                 //Create and run nested expression
-                TreeNode res = i_expr_normal(true, false);
+                TreeNode res = i_exprNormal(true);
                 //Since we nested, we HAVE to add the previous expression to the FRONT of the I_EXPR
                 //This is just how the grammar works
                 TreeNode attachTo = res;
