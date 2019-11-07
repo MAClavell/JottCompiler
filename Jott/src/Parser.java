@@ -235,21 +235,22 @@ public class Parser {
     private static void expr(TreeNode node) {
         checkSize();
 
+        // If the first token is an integer or a -integer/+integer (in i_expr)
+        // Or if there is a relative op at tokenIndex + 1
+        if(isTokenTypeInteger(tokenIndex) || isTokenRelOp(tokenStream.get(tokenIndex+1))){
+            node.addTreeNode(i_expr());
+        }
+
         // The expression starting with a str_literal (in s_expr)
         // The expression starting with concat (in s_expr)
         // The expression starting with charAt (in s_expr)
-        if(isTokenTypeString(tokenStream.get(tokenIndex))) {
+        else if(isTokenTypeString(tokenStream.get(tokenIndex))) {
             node.addTreeNode(s_expr());
-        }
-
-        // If the first token is an integer or a -integer/+integer (in i_expr)
-        else if(isTokenTypeInteger(tokenIndex)){
-            node.addTreeNode(i_expr());
         }
 
         // If the first token is a double or a -double/+double (in d_expr)
         else if(isTokenTypeDouble(tokenIndex)){
-            node.addTreeNode(d_expr(false));
+            node.addTreeNode(d_expr());
         }
 
         // If it is an id
@@ -257,18 +258,18 @@ public class Parser {
 
             if(globalScope.hasSymbol(tokenStream.get(tokenIndex).getTokenText(), tokenIndex))
             {
-                // If the id is a double
+                // If the id is an integer or has a relational op
                 if(globalScope.getScopedSymbol(tokenStream.get(tokenIndex).getTokenText(), tokenIndex).getType()==
-                        Symbol.variableType.DOUBLE){
-                    node.addTreeNode(d_expr(false));
-                }
-
-                // If the id is an integer
-                else if(globalScope.getScopedSymbol(tokenStream.get(tokenIndex).getTokenText(), tokenIndex).getType()==
-                        Symbol.variableType.INTEGER){
+                    Symbol.variableType.INTEGER ||
+                    isTokenRelOp(tokenStream.get(tokenIndex+1))){
                     node.addTreeNode(i_expr());
                 }
-
+                // If the id is a double
+                else if(globalScope.getScopedSymbol(tokenStream.get(tokenIndex).getTokenText(), tokenIndex).getType()==
+                        Symbol.variableType.DOUBLE){
+                    node.addTreeNode(d_expr());
+                }
+                //Strings
                 else{
                     node.addTreeNode(s_expr());
                 }
@@ -386,7 +387,7 @@ public class Parser {
         // Adds the expr
         switch (varType) {
             case DOUBLE:
-                node.addTreeNode(d_expr(false));
+                node.addTreeNode(d_expr());
                 break;
             case INTEGER:
                 node.addTreeNode(i_expr());
@@ -407,84 +408,104 @@ public class Parser {
                 tokenStream.get(tokenIndex));
     }
 
+
+    ///NUMBERS ---------------------------------------------------------------
+
     /**
-     * Check if the current token is a double (with a sign if it exists)
-     *      and push it to the passed in tree node
-     * @param node Node to push the double too
-     * @return boolean if an double was found
+     * Return a TreeNode of an double (w/ or w/o a sign) (increments tokenIndex)
+     * @param numType the statetype of the type of number to find
+     * @param numTokenType the tokentype of the number to find
+     * @return TreeNode of that double, null if none was found
      */
-    private static boolean dbl(TreeNode node) {
-        TreeNode dblNode = new TreeNode(new State(State.stateType.DBL));
+    private static TreeNode findNumNode(State.stateType numType, TokenType numTokenType) {
+        TreeNode numNode = new TreeNode(new State(numType));
         boolean foundSign = false;
 
         if(isTokenSign(tokenStream.get(tokenIndex)))
         {
-            dblNode.addTreeNode(new State(State.stateType.SIGN, tokenStream.get(tokenIndex), tokenIndex));
+            numNode.addTreeNode(new State(State.stateType.SIGN, tokenStream.get(tokenIndex), tokenIndex));
             tokenIndex++;
             foundSign = true;
         }
-        if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.Double))
+        if(tokenStream.get(tokenIndex).getTokenType().equals(numTokenType))
         {
-            dblNode.addTreeNode(new State(State.stateType.DIGIT, tokenStream.get(tokenIndex), tokenIndex));
+            numNode.addTreeNode(new State(State.stateType.DIGIT, tokenStream.get(tokenIndex), tokenIndex));
             tokenIndex++;
-            node.addTreeNode(dblNode); //add to the real node
-            return true;
+            return numNode;
         }
 
         if(foundSign)
             tokenIndex--;
-        return false;
 
+        return null;
     }
 
     /**
-     * Evaluate the upcoming tokens in the tokenstream to see if it is an d_expr
-     * This function will add it to the send in tree node if it is
-     * @param isNestedExpr FALSE by default. Flag to see if we are evaluating a nested d_expr
-     * @return TreeNode finished expression (used for recursion and nested expressions)
+     * Return a TreeNode of either a number or id (increments tokenIndex)
+     * @param numExprType the statetype of the type of number_expr to find
+     * @param numType the statetype of the type of number to find
+     * @param numTokenType the tokentype of the number to find
+     * @param addIExprToID add an extra numType_expr node to an id if one is found
+     * @param addExprToNum add an extra numType_expr node to a num if one is found
+     * @return TreeNode of that number or id, null if none was found
      */
-    private static TreeNode d_expr(boolean isNestedExpr) {
-        //Local expression node to evaluate into
-        TreeNode parentExprNode = new TreeNode(new State (State.stateType.D_EXPR));
+    private static TreeNode findNumOrIDNode(State.stateType numExprType, State.stateType numType, TokenType numTokenType,
+                                            boolean addIExprToID, boolean addExprToNum)
+    {
+        TreeNode first = null;
+        boolean idFound = false;
+        Token token = tokenStream.get(tokenIndex);
+        if(token.getTokenType().equals(TokenType.ID))
+        {
+            first = new TreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex), tokenIndex));
+            idFound = true;
+            tokenIndex++;
+        }
+        else first = findNumNode(numType, numTokenType);
 
-        //Go back an index if we are nested
-        if(isNestedExpr)
-            tokenIndex--;
-
-        //Check first parameter to see if it's an ID (skip over if we are nested)
-        if(isNestedExpr || tokenStream.get(tokenIndex).getTokenType().equals(TokenType.ID)){
-            //Lookahead to see if there's an operator
-            if(isTokenOp(tokenStream.get(tokenIndex+1))) {
-                //Since this IS a math expression, add the ID as a SEPARATE D_EXPR
-                if(!isNestedExpr) {
-                    TreeNode idNode = parentExprNode.addTreeNode(new State(State.stateType.D_EXPR));
-                    idNode.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex), tokenIndex));
-                }
-                tokenIndex++;
-
-                //Find the third component of the D_EXPR
-                return d_exprThirdComponent(parentExprNode);
-            }
-            //Since this is NOT a math expression, add the ID to THIS D_EXPR
-            else {
-                parentExprNode.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex), tokenIndex));
-                tokenIndex++;
-                return parentExprNode; //hit the REAL end of an D_EXPR
-            }
+        //Add optional d_exprs
+        if((addIExprToID && idFound) || (addExprToNum && !idFound))
+        {
+            TreeNode temp = new TreeNode(new State(numExprType));
+            temp.addTreeNode(first);
+            first = temp;
         }
 
-        //Check first parameter to see if it's a Double (skip over if we are nested)
-        //Automatically adds integer to the node if one exists
-        else if(isNestedExpr || dbl(parentExprNode)) {
-            //See if there's an operator
-            if(isTokenOp(tokenStream.get(tokenIndex))) {
-                //IS a math expression
-                //Find the third component of the D_EXPR
-                return d_exprThirdComponent(parentExprNode);
+        return first;
+    }
+
+
+    ///DOUBLES ---------------------------------------------------------------
+
+    /**
+     * Evaluate the upcoming tokens in the tokenstream to see if it is double math and evaluate it
+     * @return TreeNode finished expression
+     */
+    private static TreeNode d_expr() {
+        //Local expression node to evaluate into
+        TreeNode root = new TreeNode(new State (State.stateType.D_EXPR));
+
+        //Find what the first token is
+        TreeNode first = findNumOrIDNode(State.stateType.D_EXPR, State.stateType.DBL, TokenType.Double,
+                false, false);
+
+        if(first != null)
+        {
+            if(isTokenOp(tokenStream.get(tokenIndex)))
+            {
+                //Add an extra d_expr to the ID in this case
+                if(first.getState().getState() == State.stateType.ID)
+                {
+                    TreeNode temp = new TreeNode(new State(State.stateType.D_EXPR));
+                    temp.addTreeNode(first);
+                    first = temp;
+                }
+                return d_exprFollowingComponent(root, first);
             }
-            //NOT a math expression
-            else {
-                return parentExprNode; //hit the REAL end of an D_EXPR
+            else
+            {
+                root.addTreeNode(first);
+                return root;
             }
         }
         else numExprError("Double");
@@ -493,90 +514,59 @@ public class Parser {
     }
 
     /**
-     * Evaluate the third component of an d_expr.
-     * NEVER CALL THIS FUNCTION OUTSIDE OF d_expr()
-     * @param parentExprNode The current expression node we are evaluating
+     * Evaluate the following component of an d_expr.
+     * @param root The current root expression node we are evaluating
+     * @param first The first part of this statement
      * @return TreeNode finished expression (used for recursion and nested expressions)
      */
-    private static TreeNode d_exprThirdComponent(TreeNode parentExprNode)
+    private static TreeNode d_exprFollowingComponent(TreeNode root, TreeNode first)
     {
         //Add the operator to the D_EXPR
-        parentExprNode.addTreeNode(new State(State.stateType.OP, tokenStream.get(tokenIndex), tokenIndex));
+        TreeNode op = new TreeNode(new State(State.stateType.OP, tokenStream.get(tokenIndex), tokenIndex));
         tokenIndex++;
 
-        //Find what the third token is
-        boolean foundDouble = dbl(parentExprNode);
-        boolean foundID = foundDouble ? false : tokenStream.get(tokenIndex).getTokenType().equals(TokenType.ID);
-        if(foundID)
-        {
-            //Add ID to the D_EXPR
-            TreeNode idNode = parentExprNode.addTreeNode(new State(State.stateType.D_EXPR));
-            idNode.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex), tokenIndex));
-            tokenIndex++;
-        }
+        //Find what the following token is
+        TreeNode second = findNumOrIDNode(State.stateType.D_EXPR, State.stateType.DBL, TokenType.Double,
+                true, false);
 
         //Check for nested statements or add
-        if(foundDouble || foundID)
+        if(second != null)
         {
-            //Check if there is ANOTHER operator, meaning we are nested
-            if (isTokenOp(tokenStream.get(tokenIndex)))
-            {
-                //Create and run nested expression
-                TreeNode res = d_expr(true);
-                //Since we nested, we HAVE to add the previous expression to the FRONT of the D_EXPR
-                //This is just how the grammar works
-                TreeNode attachTo = res;
-                while(attachTo.getChildren().get(0).getState().getState() != State.stateType.OP)
-                    attachTo = attachTo.getChildren().get(0);
-
-                attachTo.addTreeNodeToFront(parentExprNode);
-                return res;
-            }
-            //Expression is finish, add it and return
-            else {
-                return parentExprNode; //hit the REAL end of an D_EXPR
-            }
+            root.addTreeNode(first);
+            root.addTreeNode(op);
+            root.addTreeNode(second);
+            //If there is another operator
+            if(isTokenOp(tokenStream.get(tokenIndex)))
+                return d_exprFollowingComponent(new TreeNode(new State(State.stateType.D_EXPR)), root);
+            //If we are at the end
+            return root;
         }
         else numExprError("Double");
 
         return null; //fail (should never reach here as we are exiting on errors)
     }
 
-    /**
-     * Check if the current token is an integer (with a sign if it exists)
-     *      and push it to the passed in tree node
-     * @param node Node to push the integer too
-     * @return boolean if an integer was found
-     */
-    private static boolean integer(TreeNode node) {
-        TreeNode intNode = new TreeNode(new State(State.stateType.INT));
-        boolean foundSign = false;
 
-        if(isTokenSign(tokenStream.get(tokenIndex)))
-        {
-            intNode.addTreeNode(new State(State.stateType.SIGN, tokenStream.get(tokenIndex), tokenIndex));
-            tokenIndex++;
-            foundSign = true;
-        }
-        if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.Integer))
-        {
-            intNode.addTreeNode(new State(State.stateType.DIGIT, tokenStream.get(tokenIndex), tokenIndex));
-            tokenIndex++;
-            node.addTreeNode(intNode); //add to the real node
-            return true;
-        }
-
-        if(foundSign)
-            tokenIndex--;
-
-        return false;
-    }
+    ///INTEGERS ---------------------------------------------------------------
 
     private static TreeNode i_expr() {
         TreeNode root = null;
 
+        //Get what symbol type this ID is
+        Symbol.variableType varType = Symbol.variableType.INTEGER;
+        Token token = tokenStream.get(tokenIndex);
+        if(token.getTokenType() == TokenType.ID)
+        {
+            if (globalScope.hasSymbol(token.getTokenText(), tokenIndex))
+                varType = globalScope.getScopedSymbol(tokenStream.get(tokenIndex).getTokenText(), tokenIndex).getType();
+            //Variable does not exists
+            else LogError.log(LogError.ErrorType.RUNTIME, "Unknown variable '" +
+                            tokenStream.get(tokenIndex).getTokenText()+"'",
+                    tokenStream.get(tokenIndex));
+        }
+
         //Find string relations
-        if(isTokenTypeString(tokenStream.get(tokenIndex))) {
+        if(isTokenTypeString(tokenStream.get(tokenIndex)) || varType == Symbol.variableType.STRING) {
             TreeNode first = s_expr();
             if (first != null) {
                 //Check for relative op and another s_expr
@@ -595,20 +585,20 @@ public class Parser {
         }
 
         //Find double relations
-        else if(isTokenTypeDouble(tokenIndex)) {
-            TreeNode first = d_expr(false);
+        else if(isTokenTypeDouble(tokenIndex) || varType == Symbol.variableType.DOUBLE) {
+            TreeNode first = d_expr();
             if (first != null) {
                 //Check for relative op and another d_expr
                 if (isTokenRelOp(tokenStream.get(tokenIndex))) {
                     TreeNode relOp = new TreeNode(new State(State.stateType.REL_OP, tokenStream.get(tokenIndex), tokenIndex));
                     tokenIndex++;
-                    TreeNode dblRoot = new TreeNode((new State(State.stateType.D_EXPR)));
-                    boolean foundSecond = dbl(dblRoot);
-                    if (foundSecond) {
+                    TreeNode second = findNumOrIDNode(State.stateType.D_EXPR, State.stateType.DBL, TokenType.Double,
+                            true, true);
+                    if (second != null) {
                         root = new TreeNode(new State(State.stateType.I_EXPR));
                         root.addTreeNode(first);
                         root.addTreeNode(relOp);
-                        root.addTreeNode(dblRoot);
+                        root.addTreeNode(second);
                     }
                 }
             }
@@ -616,51 +606,63 @@ public class Parser {
 
         //Integers are special because normal integer operations still need to occur
         //Try normal integer operations and integer relational operatons
-        if(root == null)
+        else
         {
-            TreeNode first = i_exprNormal(false);
+            TreeNode first = i_exprNormal();
             if (first != null) {
                 //Check for relative op and another i_expr
                 if (isTokenRelOp(tokenStream.get(tokenIndex))) {
-                    return i_exprIntRelationThirdComponent(new TreeNode(new State(State.stateType.I_EXPR)), first);
+                    root = i_exprIntRelationFollowingComponent(new TreeNode(new State(State.stateType.I_EXPR)), first);
                 }
                 //Didn't find a relational operation
-                else return first;
+                else root = first;
             }
             //Found nothing at all
             else return null;
         }
-        // check if there's any integer math after dbl or string
-        else if(isTokenOp(tokenStream.get(tokenIndex))) {
-            TreeNode newRoot = new TreeNode(new State(State.stateType.I_EXPR));
-            newRoot.addTreeNode(root);
-            TreeNode foundIntMath = i_exprThirdComponent(newRoot);
-            if(foundIntMath != null)
-                return foundIntMath;
-        }
-        else if(isTokenRelOp(tokenStream.get(tokenIndex)))
+
+        //If there more math to do after we get initial operation
+        while(isTokenOp(tokenStream.get(tokenIndex)) || isTokenRelOp(tokenStream.get(tokenIndex)))
         {
-            TreeNode newRoot = new TreeNode(new State(State.stateType.I_EXPR));
-            newRoot.addTreeNode(root);
-            TreeNode nestedRelations = i_exprIntRelationThirdComponent(newRoot, root);
-            if(nestedRelations != null)
-                return nestedRelations;
+            // check if there's any integer math after dbl or string
+            if (isTokenOp(tokenStream.get(tokenIndex)))
+            {
+                TreeNode newRoot = new TreeNode(new State(State.stateType.I_EXPR));
+                TreeNode nestedMath = i_exprFollowingComponent(newRoot, root);
+                if (nestedMath != null)
+                    root = nestedMath;
+            }
+            if (isTokenRelOp(tokenStream.get(tokenIndex)))
+            {
+                TreeNode newRoot = new TreeNode(new State(State.stateType.I_EXPR));
+                TreeNode nestedRelations = i_exprIntRelationFollowingComponent(newRoot, root);
+                if (nestedRelations != null)
+                    root = nestedRelations;
+            }
         }
         return root;
     }
 
-    private static TreeNode i_exprIntRelationThirdComponent(TreeNode root, TreeNode first)
+    /**
+     * Evaluate the following components of an i_expr relational operator.
+     * @param root The current root expression node we are evaluating
+     * @param first The first part of this statement
+     * @return TreeNode finished expression (used for recursion and nested expressions)
+     */
+    private static TreeNode i_exprIntRelationFollowingComponent(TreeNode root, TreeNode first)
     {
         TreeNode relOp = new TreeNode(new State(State.stateType.REL_OP, tokenStream.get(tokenIndex), tokenIndex));
         tokenIndex++;
-        TreeNode second = i_exprNormal(true);
+        root = new TreeNode(new State(State.stateType.I_EXPR));
+
+        TreeNode second = findNumOrIDNode(State.stateType.I_EXPR, State.stateType.INT,  TokenType.Integer,
+                true, true);
         if (second != null) {
-            root = new TreeNode(new State(State.stateType.I_EXPR));
             root.addTreeNode(first);
             root.addTreeNode(relOp);
             root.addTreeNode(second);
             if(isTokenRelOp(tokenStream.get(tokenIndex)))
-                return i_exprIntRelationThirdComponent(new TreeNode(new State(State.stateType.I_EXPR)), root);
+                return i_exprIntRelationFollowingComponent(new TreeNode(new State(State.stateType.I_EXPR)), root);
             return root;
         }
 
@@ -668,53 +670,34 @@ public class Parser {
     }
 
     /**
-     * Evaluate the upcoming tokens in the tokenstream to see if it is an i_expr
-     * This function will add it to the send in tree node if it is
-     * @param isNestedExpr FALSE by default. Flag to see if we are evaluating a nested i_expr
-     * @return TreeNode finished expression (used for recursion and nested expressions)
+     * Evaluate the upcoming tokens in the tokenstream to see if it is integer math and evaluate it
+     * @return TreeNode finished expression
      */
-    private static TreeNode i_exprNormal(boolean isNestedExpr) {
+    private static TreeNode i_exprNormal() {
         //Local expression node to evaluate into
-        TreeNode parentExprNode = new TreeNode(new State (State.stateType.I_EXPR));
+        TreeNode root = new TreeNode(new State (State.stateType.I_EXPR));
 
-        //Go back an index if we are nested
-        if(isNestedExpr)
-            tokenIndex--;
+        //Find what the first token is
+        TreeNode first = findNumOrIDNode(State.stateType.I_EXPR, State.stateType.INT,  TokenType.Integer,
+                false, false);
 
-        //Check first parameter to see if it's an ID (skip over if we are nested)
-        if(isNestedExpr || tokenStream.get(tokenIndex).getTokenType().equals(TokenType.ID)){
-            //Lookahead to see if there's an operator
-            if(isTokenOp(tokenStream.get(tokenIndex+1))) {
-                //Since this IS a math expression, add the ID as a SEPARATE I_EXPR
-                if(!isNestedExpr) {
-                    TreeNode idNode = parentExprNode.addTreeNode(new State(State.stateType.I_EXPR));
-                    idNode.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex), tokenIndex));
+        if(first != null)
+        {
+            if(isTokenOp(tokenStream.get(tokenIndex)))
+            {
+                //Add an extra i_expr to the ID in this case
+                if(first.getState().getState() == State.stateType.ID)
+                {
+                    TreeNode temp = new TreeNode(new State(State.stateType.I_EXPR));
+                    temp.addTreeNode(first);
+                    first = temp;
                 }
-                tokenIndex++;
-
-                //Find the third component of the I_EXPR
-                return i_exprThirdComponent(parentExprNode);
+                return i_exprFollowingComponent(root, first);
             }
-            //Since this is NOT a math expression, add the ID to THIS I_EXPR
-            else {
-                parentExprNode.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex), tokenIndex));
-                tokenIndex++;
-                return parentExprNode; //hit the REAL end of an I_EXPR
-            }
-        }
-
-        //Check first parameter to see if it's an Integer (skip over if we are nested)
-        //Automatically adds integer to the node if one exists
-        else if(integer(parentExprNode)) {
-            //See if there's an operator
-            if(isTokenOp(tokenStream.get(tokenIndex))) {
-                //IS a math expression
-                //Find the third component of the I_EXPR
-                return i_exprThirdComponent(parentExprNode);
-            }
-            //NOT a math expression
-            else {
-                return parentExprNode; //hit the REAL end of an I_EXPR
+            else
+            {
+                root.addTreeNode(first);
+                return root;
             }
         }
         else numExprError("Integer");
@@ -723,54 +706,40 @@ public class Parser {
     }
 
     /**
-     * Evaluate the third component of an i_expr.
-     * NEVER CALL THIS FUNCTION OUTSIDE OF i_expr()
-     * @param parentExprNode The current expression node we are evaluating
+     * Evaluate the following components of an i_exprNormal.
+     * @param root The current root expression node we are evaluating
+     * @param first The first part of this statement
      * @return TreeNode finished expression (used for recursion and nested expressions)
      */
-    private static TreeNode i_exprThirdComponent(TreeNode parentExprNode)
+    private static TreeNode i_exprFollowingComponent(TreeNode root, TreeNode first)
     {
         //Add the operator to the I_EXPR
-        parentExprNode.addTreeNode(new State(State.stateType.OP, tokenStream.get(tokenIndex), tokenIndex));
+        TreeNode op = new TreeNode(new State(State.stateType.OP, tokenStream.get(tokenIndex), tokenIndex));
         tokenIndex++;
 
-        //Find what the third token is
-        boolean foundID = tokenStream.get(tokenIndex).getTokenType().equals(TokenType.ID);
-        if(foundID)
-        {
-            //Add ID to the I_EXPR
-            TreeNode idNode = parentExprNode.addTreeNode(new State(State.stateType.I_EXPR));
-            idNode.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex), tokenIndex));
-            tokenIndex++;
-        }
-        boolean foundInteger = foundID ? false : integer(parentExprNode);
+        //Find what the following token is
+        TreeNode second = findNumOrIDNode(State.stateType.I_EXPR, State.stateType.INT,  TokenType.Integer,
+                true, false);
 
         //Check for nested statements or add
-        if(foundInteger || foundID)
+        if(second != null)
         {
-            //Check if there is ANOTHER operator or int, meaning we are nested
-            if (isTokenOp(tokenStream.get(tokenIndex)))
-            {
-                //Create and run nested expression
-                TreeNode res = i_exprNormal(true);
-                //Since we nested, we HAVE to add the previous expression to the FRONT of the I_EXPR
-                //This is just how the grammar works
-                TreeNode attachTo = res;
-                while(attachTo.getChildren().get(0).getState().getState() != State.stateType.OP)
-                    attachTo = attachTo.getChildren().get(0);
-
-                attachTo.addTreeNodeToFront(parentExprNode);
-                return res;
-            }
-            //Expression is finished, return
-            else {
-                return parentExprNode; //hit the REAL end of an I_EXPR
-            }
+            root.addTreeNode(first);
+            root.addTreeNode(op);
+            root.addTreeNode(second);
+            //If there is another operator
+            if(isTokenOp(tokenStream.get(tokenIndex)))
+                return i_exprFollowingComponent(new TreeNode(new State(State.stateType.I_EXPR)), root);
+            //If we are at the end
+            return root;
         }
         else numExprError("Integer");
 
         return null; //fail (should never reach here as we are exiting on errors)
     }
+
+
+    ///STRINGS ---------------------------------------------------------------
 
     private static void str_literal(TreeNode node) {
         // Adds the string
