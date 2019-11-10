@@ -471,6 +471,16 @@ public class SemanticAnalysis {
                         return 1;
                     }
                     return 0;
+                case Eq:
+                    if(firstOp==secondOp){
+                        return 1;
+                    }
+                    return 0;
+                case NotEq:
+                    if(firstOp!=secondOp){
+                        return 1;
+                    }
+                    return 0;
             }
 
             LogError.log(LogError.ErrorType.SYNTAX, "Expected a valid operator, got " +
@@ -594,6 +604,16 @@ public class SemanticAnalysis {
                     return 0;
                 case GreaterEq:
                     if(firstOp>=secondOp){
+                        return 1;
+                    }
+                    return 0;
+                case Eq:
+                    if(firstOp==secondOp){
+                        return 1;
+                    }
+                    return 0;
+                case NotEq:
+                    if(firstOp!=secondOp){
                         return 1;
                     }
                     return 0;
