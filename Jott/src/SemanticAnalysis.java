@@ -427,6 +427,87 @@ public class SemanticAnalysis {
     }
 
     private static int i_expr(TreeNode node){
+
+        if(node.getChildren().get(0).getState().getState()== State.stateType.S_EXPR
+                && node.getChildren().get(2).getState().getState()== State.stateType.S_EXPR
+                && node.getChildren().get(1).getState().getState()== State.stateType.REL_OP){
+            String firstOp=s_expr(node.getChildren().get(0));
+            String secondOp=s_expr(node.getChildren().get(2));
+            switch(node.getChildren().get(1).getToken().getTokenType()){
+                case Less:
+                    int index=0;
+                    while(index<firstOp.length() && index<secondOp.length()){
+                        if(firstOp.charAt(index)<secondOp.charAt(index)){
+                            return 1;
+                        }
+                        index++;
+                    }
+                    if(firstOp.length()<secondOp.length()){
+                        return 1;
+                    }
+                    return 0;
+                case Greater:
+                    index=0;
+                    while(index<firstOp.length() && index<secondOp.length()){
+                        if(firstOp.charAt(index)>secondOp.charAt(index)){
+                            return 1;
+                        }
+                        index++;
+                    }
+                    if(firstOp.length()>secondOp.length()){
+                        return 1;
+                    }
+                    return 0;
+                case LessEq:
+                    index=0;
+                    while(index<firstOp.length() && index<secondOp.length()){
+                        if(firstOp.charAt(index)<secondOp.charAt(index)){
+                            return 1;
+                        }
+                        index++;
+                    }
+                    if(firstOp.length()<=secondOp.length()){
+                        return 1;
+                    }
+                    return 0;
+                case GreaterEq:
+                    index=0;
+                    while(index>firstOp.length() && index>secondOp.length()){
+                        if(firstOp.charAt(index)<secondOp.charAt(index)){
+                            return 1;
+                        }
+                        index++;
+                    }
+                    if(firstOp.length()>=secondOp.length()){
+                        return 1;
+                    }
+                    return 0;
+                case Eq:
+                    index=0;
+                    while(index<firstOp.length() && index<secondOp.length()){
+                        if(firstOp.charAt(index)!=secondOp.charAt(index)){
+                            return 0;
+                        }
+                        index++;
+                    }
+                    if(firstOp.length()==secondOp.length()){
+                        return 1;
+                    }
+                case NotEq:
+                    index=0;
+                    while(index<firstOp.length() && index<secondOp.length()){
+                        if(firstOp.charAt(index)!=secondOp.charAt(index)){
+                            return 1;
+                        }
+                        index++;
+                    }
+                    if(firstOp.length()!=secondOp.length()){
+                        return 1;
+                    }
+                    return 0;
+            }
+        }
+
         // Gets the first operator
         int firstOp=parseIntOperand(node, 0);
 
