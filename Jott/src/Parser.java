@@ -120,7 +120,7 @@ public class Parser {
                 tokenIndex++;
                 node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex), tokenIndex));
                 tokenIndex++;
-                //i_expr(node.addTreeNode(new State(State.stateType.I_EXPR)), false);
+                node.addTreeNode(i_expr()); //i_expr(node.addTreeNode(new State(State.stateType.I_EXPR)), false);
                 node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex), tokenIndex));
                 tokenIndex++;
                 node.addTreeNode(new State(State.stateType.START_BLCK, tokenStream.get(tokenIndex), tokenIndex));
@@ -137,7 +137,7 @@ public class Parser {
                 node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex), tokenIndex));
                 tokenIndex++;
                 asmt(node.addTreeNode(new State(State.stateType.ASMT)));
-                //i_expr(node.addTreeNode(new State(State.stateType.I_EXPR)), false);
+                node.addTreeNode(i_expr());//i_expr(node.addTreeNode(new State(State.stateType.I_EXPR)), false);
                 node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex), tokenIndex));
                 tokenIndex++;
                 r_asmt(node.addTreeNode(new State(State.stateType.R_ASMT)));
