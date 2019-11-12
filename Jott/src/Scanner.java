@@ -54,6 +54,11 @@ public class Scanner {
 
                     //Find a new token type
                     type = findTokenTypeFromChar(c);
+                    if(type == TokenType.String && text.charAt(text.length()-1) != '"')
+                    {
+                            LogError.log(LogError.ErrorType.SYNTAX, "Missing \"", lineNum, columnStart, columnNum);
+                            break;
+                    }
                     if (type == null) //type is STILL null
                     {
                         LogError.log(LogError.ErrorType.SYNTAX, "Invalid character '" + c + "' found", lineNum, columnStart, columnNum);
