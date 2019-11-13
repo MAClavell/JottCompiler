@@ -76,60 +76,157 @@ public class Parser {
     private static void if_stmt(TreeNode node){
         node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
         tokenIndex++;
-        node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex), tokenIndex));
-        tokenIndex++;
+        if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.StartParen)) {
+            node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex), tokenIndex));
+            tokenIndex++;
+        }
+        else LogError.log(LogError.ErrorType.SYNTAX, "Expected '(', got " +
+                            tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                    tokenStream.get(tokenIndex));
+
         expr(node.addTreeNode(new State(State.stateType.EXPR)));
-        node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex), tokenIndex));
-        tokenIndex++;
-        node.addTreeNode(new State(State.stateType.START_BLCK, tokenStream.get(tokenIndex), tokenIndex));
-        tokenIndex++;
+
+        if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndParen)) {
+            node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex), tokenIndex));
+            tokenIndex++;
+        }
+        else LogError.log(LogError.ErrorType.SYNTAX, "Expected ')', got " +
+                        tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                tokenStream.get(tokenIndex));
+
+        if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.StartBlk)) {
+            node.addTreeNode(new State(State.stateType.START_BLCK, tokenStream.get(tokenIndex), tokenIndex));
+            tokenIndex++;
+        }
+        else LogError.log(LogError.ErrorType.SYNTAX, "Expected '{', got " +
+                        tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                tokenStream.get(tokenIndex));
+
         b_stmt_list(node.addTreeNode(new State(State.stateType.B_STMT_LIST)));
-        node.addTreeNode(new State(State.stateType.END_BLCK, tokenStream.get(tokenIndex), tokenIndex));
-        tokenIndex++;
+
+        if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndBlk)) {
+            node.addTreeNode(new State(State.stateType.END_BLCK, tokenStream.get(tokenIndex), tokenIndex));
+            tokenIndex++;
+        }
+        else LogError.log(LogError.ErrorType.SYNTAX, "Expected '}', got " +
+                        tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                tokenStream.get(tokenIndex));
 
         if(tokenStream.get(tokenIndex).getTokenText().equals(ELSE)){
             node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
             tokenIndex++;
-            node.addTreeNode(new State(State.stateType.START_BLCK, tokenStream.get(tokenIndex), tokenIndex));
-            tokenIndex++;
+            if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.StartBlk)) {
+                node.addTreeNode(new State(State.stateType.START_BLCK, tokenStream.get(tokenIndex), tokenIndex));
+                tokenIndex++;
+            }
+            else LogError.log(LogError.ErrorType.SYNTAX, "Expected '{', got " +
+                            tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                    tokenStream.get(tokenIndex));
+
             b_stmt_list(node.addTreeNode(new State(State.stateType.B_STMT_LIST)));
-            node.addTreeNode(new State(State.stateType.END_BLCK, tokenStream.get(tokenIndex), tokenIndex));
-            tokenIndex++;
+
+            if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndBlk)) {
+                node.addTreeNode(new State(State.stateType.END_BLCK, tokenStream.get(tokenIndex), tokenIndex));
+                tokenIndex++;
+            }
+            else LogError.log(LogError.ErrorType.SYNTAX, "Expected '}', got " +
+                            tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                    tokenStream.get(tokenIndex));
         }
     }
 
     private static void while_loop(TreeNode node){
         node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
         tokenIndex++;
-        node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex), tokenIndex));
-        tokenIndex++;
-        node.addTreeNode(i_expr()); //i_expr(node.addTreeNode(new State(State.stateType.I_EXPR)), false);
-        node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex), tokenIndex));
-        tokenIndex++;
-        node.addTreeNode(new State(State.stateType.START_BLCK, tokenStream.get(tokenIndex), tokenIndex));
-        tokenIndex++;
+
+        if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.StartParen)) {
+            node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex), tokenIndex));
+            tokenIndex++;
+        }
+        else LogError.log(LogError.ErrorType.SYNTAX, "Expected '(', got " +
+                        tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                tokenStream.get(tokenIndex));
+
+        node.addTreeNode(i_expr());
+
+        if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndParen)) {
+            node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex), tokenIndex));
+            tokenIndex++;
+        }
+        else LogError.log(LogError.ErrorType.SYNTAX, "Expected ')', got " +
+                        tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                tokenStream.get(tokenIndex));
+
+        if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.StartBlk)) {
+            node.addTreeNode(new State(State.stateType.START_BLCK, tokenStream.get(tokenIndex), tokenIndex));
+            tokenIndex++;
+        }
+        else LogError.log(LogError.ErrorType.SYNTAX, "Expected '{', got " +
+                        tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                tokenStream.get(tokenIndex));
+
         b_stmt_list(node.addTreeNode(new State(State.stateType.B_STMT_LIST)));
-        node.addTreeNode(new State(State.stateType.END_BLCK, tokenStream.get(tokenIndex), tokenIndex));
-        tokenIndex++;
+
+        if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndBlk)) {
+            node.addTreeNode(new State(State.stateType.END_BLCK, tokenStream.get(tokenIndex), tokenIndex));
+            tokenIndex++;
+        }
+        else LogError.log(LogError.ErrorType.SYNTAX, "Expected '}', got " +
+                        tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                tokenStream.get(tokenIndex));
     }
 
     private static void for_loop(TreeNode node){
         node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
         tokenIndex++;
-        node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex), tokenIndex));
-        tokenIndex++;
+
+        if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.StartParen)) {
+            node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex), tokenIndex));
+            tokenIndex++;
+        }
+        else LogError.log(LogError.ErrorType.SYNTAX, "Expected '(', got " +
+                        tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                tokenStream.get(tokenIndex));
+
         asmt(node.addTreeNode(new State(State.stateType.ASMT)));
-        node.addTreeNode(i_expr());//i_expr(node.addTreeNode(new State(State.stateType.I_EXPR)), false);
-        node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex), tokenIndex));
-        tokenIndex++;
+
+        node.addTreeNode(i_expr());
+
+        if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndStmt)) {
+            node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex), tokenIndex));
+            tokenIndex++;
+        }
+        LogError.log(LogError.ErrorType.SYNTAX, "Expected ';', got " +
+                        tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                tokenStream.get(tokenIndex));
+
         r_asmt(node.addTreeNode(new State(State.stateType.R_ASMT)));
-        node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex), tokenIndex));
-        tokenIndex++;
-        node.addTreeNode(new State(State.stateType.START_BLCK, tokenStream.get(tokenIndex), tokenIndex));
-        tokenIndex++;
+
+        if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndParen)) {
+            node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex), tokenIndex));
+            tokenIndex++;
+        }
+        else LogError.log(LogError.ErrorType.SYNTAX, "Expected ')', got " +
+                        tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                tokenStream.get(tokenIndex));
+
+        if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.StartBlk)) {
+            node.addTreeNode(new State(State.stateType.START_BLCK, tokenStream.get(tokenIndex), tokenIndex));
+            tokenIndex++;
+        }
+        else LogError.log(LogError.ErrorType.SYNTAX, "Expected '{', got " +
+                        tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                tokenStream.get(tokenIndex));
+
         b_stmt_list(node.addTreeNode(new State(State.stateType.B_STMT_LIST)));
-        node.addTreeNode(new State(State.stateType.END_BLCK, tokenStream.get(tokenIndex), tokenIndex));
-        tokenIndex++;
+
+        if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndBlk)) {
+            node.addTreeNode(new State(State.stateType.END_BLCK, tokenStream.get(tokenIndex), tokenIndex));
+            tokenIndex++;
+        }
+        else LogError.log(LogError.ErrorType.SYNTAX, "Expected '}', got " +
+                        tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                tokenStream.get(tokenIndex));
     }
 
     /**
