@@ -73,6 +73,65 @@ public class Parser {
         }
     }
 
+    private static void if_stmt(TreeNode node){
+        node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
+        tokenIndex++;
+        node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex), tokenIndex));
+        tokenIndex++;
+        expr(node.addTreeNode(new State(State.stateType.EXPR)));
+        node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex), tokenIndex));
+        tokenIndex++;
+        node.addTreeNode(new State(State.stateType.START_BLCK, tokenStream.get(tokenIndex), tokenIndex));
+        tokenIndex++;
+        b_stmt_list(node.addTreeNode(new State(State.stateType.B_STMT_LIST)));
+        node.addTreeNode(new State(State.stateType.END_BLCK, tokenStream.get(tokenIndex), tokenIndex));
+        tokenIndex++;
+
+        if(tokenStream.get(tokenIndex).getTokenText().equals(ELSE)){
+            node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
+            tokenIndex++;
+            node.addTreeNode(new State(State.stateType.START_BLCK, tokenStream.get(tokenIndex), tokenIndex));
+            tokenIndex++;
+            b_stmt_list(node.addTreeNode(new State(State.stateType.B_STMT_LIST)));
+            node.addTreeNode(new State(State.stateType.END_BLCK, tokenStream.get(tokenIndex), tokenIndex));
+            tokenIndex++;
+        }
+    }
+
+    private static void while_loop(TreeNode node){
+        node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
+        tokenIndex++;
+        node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex), tokenIndex));
+        tokenIndex++;
+        node.addTreeNode(i_expr()); //i_expr(node.addTreeNode(new State(State.stateType.I_EXPR)), false);
+        node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex), tokenIndex));
+        tokenIndex++;
+        node.addTreeNode(new State(State.stateType.START_BLCK, tokenStream.get(tokenIndex), tokenIndex));
+        tokenIndex++;
+        b_stmt_list(node.addTreeNode(new State(State.stateType.B_STMT_LIST)));
+        node.addTreeNode(new State(State.stateType.END_BLCK, tokenStream.get(tokenIndex), tokenIndex));
+        tokenIndex++;
+    }
+
+    private static void for_loop(TreeNode node){
+        node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
+        tokenIndex++;
+        node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex), tokenIndex));
+        tokenIndex++;
+        asmt(node.addTreeNode(new State(State.stateType.ASMT)));
+        node.addTreeNode(i_expr());//i_expr(node.addTreeNode(new State(State.stateType.I_EXPR)), false);
+        node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex), tokenIndex));
+        tokenIndex++;
+        r_asmt(node.addTreeNode(new State(State.stateType.R_ASMT)));
+        node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex), tokenIndex));
+        tokenIndex++;
+        node.addTreeNode(new State(State.stateType.START_BLCK, tokenStream.get(tokenIndex), tokenIndex));
+        tokenIndex++;
+        b_stmt_list(node.addTreeNode(new State(State.stateType.B_STMT_LIST)));
+        node.addTreeNode(new State(State.stateType.END_BLCK, tokenStream.get(tokenIndex), tokenIndex));
+        tokenIndex++;
+    }
+
     /**
      *  Deals with parsing a stmt into its various parts
      * @param node the node to branch off of
@@ -90,64 +149,17 @@ public class Parser {
 
             // The if statement
             else if(tokenStream.get(tokenIndex).getTokenText().equals(IF)){
-                node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
-                tokenIndex++;
-                node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex), tokenIndex));
-                tokenIndex++;
-                expr(node.addTreeNode(new State(State.stateType.EXPR)));
-                node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex), tokenIndex));
-                tokenIndex++;
-                node.addTreeNode(new State(State.stateType.START_BLCK, tokenStream.get(tokenIndex), tokenIndex));
-                tokenIndex++;
-                b_stmt_list(node.addTreeNode(new State(State.stateType.B_STMT_LIST)));
-                node.addTreeNode(new State(State.stateType.END_BLCK, tokenStream.get(tokenIndex), tokenIndex));
-                tokenIndex++;
-
-                if(tokenStream.get(tokenIndex).getTokenText().equals(ELSE)){
-                    node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
-                    tokenIndex++;
-                    node.addTreeNode(new State(State.stateType.START_BLCK, tokenStream.get(tokenIndex), tokenIndex));
-                    tokenIndex++;
-                    b_stmt_list(node.addTreeNode(new State(State.stateType.B_STMT_LIST)));
-                    node.addTreeNode(new State(State.stateType.END_BLCK, tokenStream.get(tokenIndex), tokenIndex));
-                    tokenIndex++;
-                }
+                if_stmt(node.addTreeNode(new State(State.stateType.IF_STMT)));
             }
 
             // The while statement
             else if(tokenStream.get(tokenIndex).getTokenText().equals(WHILE)){
-                node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
-                tokenIndex++;
-                node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex), tokenIndex));
-                tokenIndex++;
-                node.addTreeNode(i_expr()); //i_expr(node.addTreeNode(new State(State.stateType.I_EXPR)), false);
-                node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex), tokenIndex));
-                tokenIndex++;
-                node.addTreeNode(new State(State.stateType.START_BLCK, tokenStream.get(tokenIndex), tokenIndex));
-                tokenIndex++;
-                b_stmt_list(node.addTreeNode(new State(State.stateType.B_STMT_LIST)));
-                node.addTreeNode(new State(State.stateType.END_BLCK, tokenStream.get(tokenIndex), tokenIndex));
-                tokenIndex++;
+                while_loop(node.addTreeNode(new State(State.stateType.WHILE_LOOP)));
             }
 
             // The for statement
             else if(tokenStream.get(tokenIndex).getTokenText().equals(FOR)){
-                node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
-                tokenIndex++;
-                node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex), tokenIndex));
-                tokenIndex++;
-                asmt(node.addTreeNode(new State(State.stateType.ASMT)));
-                node.addTreeNode(i_expr());//i_expr(node.addTreeNode(new State(State.stateType.I_EXPR)), false);
-                node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex), tokenIndex));
-                tokenIndex++;
-                r_asmt(node.addTreeNode(new State(State.stateType.R_ASMT)));
-                node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex), tokenIndex));
-                tokenIndex++;
-                node.addTreeNode(new State(State.stateType.START_BLCK, tokenStream.get(tokenIndex), tokenIndex));
-                tokenIndex++;
-                b_stmt_list(node.addTreeNode(new State(State.stateType.B_STMT_LIST)));
-                node.addTreeNode(new State(State.stateType.END_BLCK, tokenStream.get(tokenIndex), tokenIndex));
-                tokenIndex++;
+                for_loop(node.addTreeNode(new State(State.stateType.FOR_LOOP)));
 
             }
 
@@ -206,6 +218,18 @@ public class Parser {
     private static void b_stmt(TreeNode node){
         if(tokenStream.get(tokenIndex).getTokenText().equals(PRINT)){
             print(node.addTreeNode(new State(State.stateType.PRINT)));
+        }
+
+        else if(tokenStream.get(tokenIndex).getTokenText().equals(IF)){
+            if_stmt(node.addTreeNode(new State(State.stateType.IF_STMT)));
+        }
+
+        else if(tokenStream.get(tokenIndex).getTokenText().equals(WHILE)){
+            while_loop(node.addTreeNode(new State(State.stateType.WHILE_LOOP)));
+        }
+
+        else if(tokenStream.get(tokenIndex).getTokenText().equals(FOR)){
+            for_loop(node.addTreeNode(new State(State.stateType.FOR_LOOP)));
         }
 
         else if(tokenStream.get(tokenIndex+1).getTokenType()==TokenType.Assign){

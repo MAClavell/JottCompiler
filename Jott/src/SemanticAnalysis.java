@@ -52,102 +52,26 @@ public class SemanticAnalysis {
         }
 
         // Evaluates the if statement
-        else if(node.getChildren().get(0).getState().getState()== State.stateType.TERMINAL &&
-        node.getChildren().get(0).getState().getToken().getTokenText().equals(IF)){
+        else if(node.getChildren().get(0).getState().getState()== State.stateType.IF_STMT){
 
-            TreeNode grandchildNode=node.getChildren().get(2).getChildren().get(0);
+            TreeNode grandchildNode=node.getChildren().get(0);
 
-            // If the expression is an i_expr
-            if(grandchildNode.getState().getState()== State.stateType.I_EXPR){
-                if(i_expr(node.getChildren().get(2))!=0){
-                    b_stmt_list(node.getChildren().get(5));
-                }
-                else if(node.getChildren().size()>7){
-                    b_stmt_list(node.getChildren().get(9));
-                }
-            }
-
-            // If the expression is a d_expr
-            else if(grandchildNode.getState().getState()== State.stateType.D_EXPR){
-                if(d_expr(node.getChildren().get(2))!=0){
-                    b_stmt_list(node.getChildren().get(5));
-                }
-                else if(node.getChildren().size()>7){
-                    b_stmt_list(node.getChildren().get(9));
-                }
-            }
-
-            // If the expression is a s_expr
-            else{
-                if(s_expr(node.getChildren().get(2))!=null){
-                    b_stmt_list(node.getChildren().get(5));
-                }
-                else if(node.getChildren().size()>7){
-                    b_stmt_list(node.getChildren().get(9));
-                }
-            }
+            if_stmt(grandchildNode);
         }
 
         // Evaluates the while statement
-        else if(node.getChildren().get(0).getState().getState()== State.stateType.TERMINAL &&
-                node.getChildren().get(0).getState().getToken().getTokenText().equals(WHILE)){
+        else if(node.getChildren().get(0).getState().getState()== State.stateType.WHILE_LOOP){
 
-            TreeNode grandchildNode=node.getChildren().get(2).getChildren().get(0);
+            TreeNode childNode=node.getChildren().get(0);
 
-            // If the expression is an i_expr
-            if(grandchildNode.getState().getState()== State.stateType.I_EXPR){
-                while(i_expr(node.getChildren().get(2))!=0){
-                    b_stmt_list(node.getChildren().get(5));
-                }
-            }
-
-            // If the expression is a d_expr
-            else if(grandchildNode.getState().getState()== State.stateType.D_EXPR){
-                while(d_expr(node.getChildren().get(2))!=0){
-                    b_stmt_list(node.getChildren().get(5));
-                }
-            }
-
-            // If the expression is a s_expr
-            else{
-                while(s_expr(node.getChildren().get(2))!=null){
-                    b_stmt_list(node.getChildren().get(5));
-                }
-            }
+            while_loop(childNode);
         }
 
         // Evaluates the for loop
-        else if(node.getChildren().get(0).getState().getState()== State.stateType.TERMINAL &&
-                node.getChildren().get(0).getState().getToken().getTokenText().equals(FOR)){
-            TreeNode childNode=node.getChildren().get(3);
+        else if(node.getChildren().get(0).getState().getState()== State.stateType.FOR_LOOP){
+            TreeNode childNode=node.getChildren().get(0);
 
-            TreeNode grandchildNode=childNode.getChildren().get(0);
-
-            asmt_stmt(node.getChildren().get(2));
-
-            // If the expression is an i_expr
-            if(grandchildNode.getState().getState()== State.stateType.I_EXPR){
-                while(i_expr(grandchildNode)!=0){
-                    b_stmt_list(node.getChildren().get(8));
-                    r_asmt(node.getChildren().get(5));
-                }
-            }
-
-            // If the expression is a d_expr
-            else if(grandchildNode.getState().getState()== State.stateType.D_EXPR){
-                while(d_expr(grandchildNode)!=0){
-                    b_stmt_list(node.getChildren().get(8));
-                    r_asmt(node.getChildren().get(5));
-                }
-            }
-
-            // If the expression is a s_expr
-            else{
-                while(s_expr(grandchildNode)!=null){
-                    b_stmt_list(node.getChildren().get(8));
-                    r_asmt(node.getChildren().get(5));
-                }
-            }
+            for_loop(childNode);
         }
 
         // Evaluates the <expr><end_statement> -- doesn't actually change the state
@@ -201,6 +125,91 @@ public class SemanticAnalysis {
         }
     }
 
+    private static void if_stmt(TreeNode node){
+        // If the expression is an i_expr
+        if(node.getChildren().get(2).getChildren().get(0).getState().getState()== State.stateType.I_EXPR){
+            if(i_expr(node.getChildren().get(2))!=0){
+                b_stmt_list(node.getChildren().get(5));
+            }
+            else if(node.getChildren().size()>7){
+                b_stmt_list(node.getChildren().get(9));
+            }
+        }
+
+        // If the expression is a d_expr
+        else if(node.getChildren().get(2).getChildren().get(0).getState().getState()== State.stateType.D_EXPR){
+            if(d_expr(node.getChildren().get(2))!=0){
+                b_stmt_list(node.getChildren().get(5));
+            }
+            else if(node.getChildren().size()>7){
+                b_stmt_list(node.getChildren().get(9));
+            }
+        }
+
+        // If the expression is a s_expr
+        else{
+            if(s_expr(node.getChildren().get(2).getChildren().get(0))!=null){
+                b_stmt_list(node.getChildren().get(5));
+            }
+            else if(node.getChildren().size()>7){
+                b_stmt_list(node.getChildren().get(9));
+            }
+        }
+    }
+
+    private static void while_loop(TreeNode node){
+        // If the expression is an i_expr
+        if(node.getChildren().get(2).getState().getState()== State.stateType.I_EXPR){
+            while(i_expr(node.getChildren().get(2))!=0){
+                b_stmt_list(node.getChildren().get(5));
+            }
+        }
+
+        // If the expression is a d_expr
+        else if(node.getChildren().get(2).getState().getState()== State.stateType.D_EXPR){
+            while(d_expr(node.getChildren().get(2))!=0){
+                b_stmt_list(node.getChildren().get(5));
+            }
+        }
+
+        // If the expression is a s_expr
+        else{
+            while(s_expr(node.getChildren().get(2))!=null){
+                b_stmt_list(node.getChildren().get(5));
+            }
+        }
+    }
+
+    private static void for_loop(TreeNode node){
+        TreeNode childNode=node.getChildren().get(3);
+
+        asmt_stmt(node.getChildren().get(2));
+
+        // If the expression is an i_expr
+        if(childNode.getState().getState()== State.stateType.I_EXPR){
+            while(i_expr(childNode)!=0){
+                b_stmt_list(node.getChildren().get(8));
+                r_asmt(node.getChildren().get(5));
+            }
+        }
+
+        // If the expression is a d_expr
+        else if(childNode.getState().getState()== State.stateType.D_EXPR){
+            while(d_expr(childNode)!=0){
+                b_stmt_list(node.getChildren().get(8));
+                r_asmt(node.getChildren().get(5));
+            }
+        }
+
+        // If the expression is a s_expr
+        else{
+            while(s_expr(childNode)!=null){
+                b_stmt_list(node.getChildren().get(8));
+                r_asmt(node.getChildren().get(5));
+            }
+        }
+    }
+
     private static void b_stmt_list(TreeNode node){
         b_stmt(node.getChildren().get(0));
         if(node.getChildren().size()==2){
@@ -219,6 +228,18 @@ public class SemanticAnalysis {
         // The print state
         else if(childNode.getState().getState()== State.stateType.PRINT){
             print(childNode);
+        }
+
+        else if(childNode.getState().getState()== State.stateType.IF_STMT){
+            if_stmt(childNode);
+        }
+
+        else if(childNode.getState().getState()== State.stateType.WHILE_LOOP){
+            while_loop(childNode);
+        }
+
+        else if(childNode.getState().getState()== State.stateType.FOR_LOOP){
+            for_loop(childNode);
         }
 
         // The expression state
