@@ -5,6 +5,9 @@ public class Scanner {
 
     //Static variable for the token's type because of integer -> double transitions
     private static TokenType type;
+    private static int lineNum;
+    private static int columnNum;
+    private static int columnStart;
 
     /**
      * Tokenize a string into Jott tokens
@@ -18,9 +21,9 @@ public class Scanner {
         text += '\0';
 
         //Token tracking
-        int lineNum = 1;
-        int columnNum = 1;
-        int columnStart = 1;
+        lineNum = 1;
+        columnNum = 1;
+        columnStart = 1;
         StringBuilder textBuilder = new StringBuilder();
         type = null;
         boolean discardingComment = false;
@@ -54,11 +57,6 @@ public class Scanner {
 
                     //Find a new token type
                     type = findTokenTypeFromChar(c);
-                    if(type == TokenType.String && text.charAt(text.length()-1) != '"')
-                    {
-                            LogError.log(LogError.ErrorType.SYNTAX, "Missing \"", lineNum, columnStart, columnNum);
-                            break;
-                    }
                     if (type == null) //type is STILL null
                     {
                         LogError.log(LogError.ErrorType.SYNTAX, "Invalid character '" + c + "' found", lineNum, columnStart, columnNum);
@@ -138,6 +136,10 @@ public class Scanner {
                 if(c == '"' && textBuilder.length() != 0)
                 {
                     textBuilder.deleteCharAt(0);
+                }
+                else if(c == '\0')
+                {
+                    LogError.log(LogError.ErrorType.SYNTAX, "Missing \"", lineNum, columnStart, columnNum);
                 }
                 else return 0; //strings can contain all characters
 

@@ -25,10 +25,10 @@ public class Jott {
 
         //Create tokens from file
         ArrayList<Token> tokens = Scanner.tokenize(text, args[0]);
-        for (Token t : tokens) {
-            System.out.println(t);
-        }
-        System.out.println("");
+        //for (Token t : tokens) {
+        //    System.out.println(t);
+        //}
+        //System.out.println("");
 
         Reference global=new Reference(0, Reference.ReferenceType.GLOBAL);
         global.addEndToken(tokens.size()-1);
@@ -40,7 +40,7 @@ public class Jott {
         HashMap<String, Reference> referenceTable=new HashMap<String, Reference>();
 
         TreeNode root = Parser.parse(tokens, global);
-        System.out.println(root);
+        //System.out.println(root);
         SemanticAnalysis.output(root, global);
     }
 }

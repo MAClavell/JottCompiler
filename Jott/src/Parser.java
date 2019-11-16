@@ -196,7 +196,7 @@ public class Parser {
             node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex), tokenIndex));
             tokenIndex++;
         }
-        LogError.log(LogError.ErrorType.SYNTAX, "Expected ';', got " +
+        else LogError.log(LogError.ErrorType.SYNTAX, "Expected ';', got " +
                         tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
                 tokenStream.get(tokenIndex));
 
@@ -381,13 +381,13 @@ public class Parser {
             {
                 // If the id is an integer or has a relational op
                 if(globalScope.getScopedSymbol(tokenStream.get(tokenIndex).getTokenText(), tokenIndex).getType()==
-                    Symbol.variableType.INTEGER ||
+                    Symbol.variableType.Integer ||
                     isTokenRelOp(tokenStream.get(tokenIndex+1))){
                     node.addTreeNode(i_expr());
                 }
                 // If the id is a double
                 else if(globalScope.getScopedSymbol(tokenStream.get(tokenIndex).getTokenText(), tokenIndex).getType()==
-                        Symbol.variableType.DOUBLE){
+                        Symbol.variableType.Double){
                     node.addTreeNode(d_expr());
                 }
                 //Strings
@@ -456,11 +456,11 @@ public class Parser {
         //Get this variable's type
         Symbol.variableType varType = null;
         if (tokenText.equals(DOUBLE))
-            varType = Symbol.variableType.DOUBLE;
+            varType = Symbol.variableType.Double;
         else if (tokenText.equals(INTEGER))
-            varType = Symbol.variableType.INTEGER;
+            varType = Symbol.variableType.Integer;
         else if (tokenText.equals(STRING))
-            varType = Symbol.variableType.STRING;
+            varType = Symbol.variableType.String;
             // An error
         else
             LogError.log(LogError.ErrorType.RUNTIME, "Unknown type '" + tokenText + "'",
@@ -478,14 +478,14 @@ public class Parser {
             //Generate symbol
             Symbol s = null;
             switch (varType) {
-                case DOUBLE:
-                    s = new Symbol<Double>(Symbol.variableType.DOUBLE, tokenStream.get(tokenIndex).getTokenText());
+                case Double:
+                    s = new Symbol<Double>(Symbol.variableType.Double, tokenStream.get(tokenIndex).getTokenText());
                     break;
-                case INTEGER:
-                    s = new Symbol<Integer>(Symbol.variableType.INTEGER, tokenStream.get(tokenIndex).getTokenText());
+                case Integer:
+                    s = new Symbol<Integer>(Symbol.variableType.Integer, tokenStream.get(tokenIndex).getTokenText());
                     break;
-                case STRING:
-                    s = new Symbol<String>(Symbol.variableType.STRING, tokenStream.get(tokenIndex).getTokenText());
+                case String:
+                    s = new Symbol<String>(Symbol.variableType.String, tokenStream.get(tokenIndex).getTokenText());
                     break;
                 default:
                     break;
@@ -507,13 +507,13 @@ public class Parser {
 
         // Adds the expr
         switch (varType) {
-            case DOUBLE:
+            case Double:
                 node.addTreeNode(d_expr());
                 break;
-            case INTEGER:
+            case Integer:
                 node.addTreeNode(i_expr());
                 break;
-            case STRING:
+            case String:
                 node.addTreeNode(s_expr());
                 break;
             default:
@@ -674,7 +674,7 @@ public class Parser {
         TreeNode root = null;
 
         //Get what symbol type this ID is
-        Symbol.variableType varType = Symbol.variableType.INTEGER;
+        Symbol.variableType varType = Symbol.variableType.Integer;
         Token token = tokenStream.get(tokenIndex);
         if(token.getTokenType() == TokenType.ID)
         {
@@ -687,7 +687,7 @@ public class Parser {
         }
 
         //Find string relations
-        if(isTokenTypeString(tokenStream.get(tokenIndex)) || varType == Symbol.variableType.STRING) {
+        if(isTokenTypeString(tokenStream.get(tokenIndex)) || varType == Symbol.variableType.String) {
             TreeNode first = s_expr();
             if (first != null) {
                 //Check for relative op and another s_expr
@@ -706,7 +706,7 @@ public class Parser {
         }
 
         //Find double relations
-        else if(isTokenTypeDouble(tokenIndex) || varType == Symbol.variableType.DOUBLE) {
+        else if(isTokenTypeDouble(tokenIndex) || varType == Symbol.variableType.Double) {
             TreeNode first = d_expr();
             if (first != null) {
                 //Check for relative op and another d_expr

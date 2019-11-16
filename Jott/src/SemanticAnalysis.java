@@ -1,4 +1,5 @@
 import java.util.HashMap;
+import java.util.ArrayList;
 
 public class SemanticAnalysis {
 
@@ -9,9 +10,18 @@ public class SemanticAnalysis {
     private static Reference globalScope;
     private static Reference currentScope;
 
+    private static ArrayList<String> toPrint;
+
     public static void output(TreeNode root, Reference global){
+        toPrint = new ArrayList<String>();
         globalScope=global;
         program(root);
+
+        //Print all statements
+        for (String str : toPrint)
+        {
+            System.out.println(str);
+        }
     }
 
     private static void program(TreeNode node){
@@ -273,20 +283,37 @@ public class SemanticAnalysis {
         if(scopedSymbol==null){
             LogError.log(LogError.ErrorType.RUNTIME, "Invalid reassignment", childNode.getToken());
         }
-        else if(scopedSymbol.getType()== Symbol.variableType.INTEGER &&
+        else if(scopedSymbol.getType()== Symbol.variableType.Integer &&
                 grandchildNode.getState().getState()== State.stateType.I_EXPR){
             scopedSymbol.changeValue(i_expr(grandchildNode));
         }
-        else if(scopedSymbol.getType()== Symbol.variableType.DOUBLE &&
+        else if(scopedSymbol.getType()== Symbol.variableType.Double &&
                 grandchildNode.getState().getState()== State.stateType.D_EXPR){
             scopedSymbol.changeValue(d_expr(grandchildNode));
         }
-        else if(scopedSymbol.getType()== Symbol.variableType.STRING &&
+        else if(scopedSymbol.getType()== Symbol.variableType.String &&
                 grandchildNode.getState().getState()== State.stateType.S_EXPR){
             scopedSymbol.changeValue(s_expr(grandchildNode));
         }
         else{
-            LogError.log(LogError.ErrorType.RUNTIME, "Invalid reassignment", childNode.getToken());
+            String gotType = "an unknown type";
+            switch (grandchildNode.getState().getState())
+            {
+                case I_EXPR:
+                    gotType = "Integer";
+                    break;
+                case D_EXPR:
+                    gotType = "Double";
+                    break;
+                case S_EXPR:
+                    gotType = "String";
+                    break;
+                default:
+                    break;
+            }
+            LogError.log(LogError.ErrorType.SYNTAX, "Invalid reassignment, expected " + scopedSymbol.getType()
+                    + " got " + gotType
+                    , childNode.getToken());
         }
     }
 
@@ -300,7 +327,7 @@ public class SemanticAnalysis {
             Symbol childSymbol=globalScope.getScopedSymbol(node.getChildren().get(2).getToken().getTokenText(),
                     node.getChildren().get(2).getState().getTokenIndex());
             if(childSymbol.getValue()!=null) {
-                System.out.println(childSymbol.getValue());
+                toPrint.add(String.valueOf(childSymbol.getValue()));
             }
             else{
                 LogError.log(LogError.ErrorType.SYNTAX, "Expected a valid ID, got " +
@@ -311,17 +338,17 @@ public class SemanticAnalysis {
 
             // If the statment in the print is an int expression
             if(stmtNode.getState().getState()== State.stateType.I_EXPR){
-                System.out.println(i_expr(stmtNode));
+                toPrint.add(String.valueOf(i_expr(stmtNode)));
             }
 
             // If the statement in the print is a double expression
             else if(stmtNode.getState().getState()== State.stateType.D_EXPR){
-                System.out.println(d_expr(stmtNode));
+                toPrint.add(String.valueOf(d_expr(stmtNode)));
             }
 
             // If the statement in the print is a String expression
             else{
-                System.out.println(s_expr(stmtNode));
+                toPrint.add(String.valueOf(s_expr(stmtNode)));
             }
         }
     }
@@ -338,7 +365,7 @@ public class SemanticAnalysis {
             //If this is a valid id
             if(globalScope.hasSymbol(id, childNode.getState().getTokenIndex()) &&
                     globalScope.getScopedSymbol(id, childNode.getState().getTokenIndex()).getType()
-                            == Symbol.variableType.INTEGER){
+                            == Symbol.variableType.Integer){
                 globalScope.getScopedSymbol(id, childNode.getState().getTokenIndex()).changeValue(i_expr(exprNode));
             }
             else {
@@ -352,7 +379,7 @@ public class SemanticAnalysis {
         else if(childNode.getToken().getTokenText().equals("Double")){
             if(globalScope.hasSymbol(id, childNode.getState().getTokenIndex()) &&
                     globalScope.getScopedSymbol(id, childNode.getState().getTokenIndex()).getType()
-                            == Symbol.variableType.DOUBLE){
+                            == Symbol.variableType.Double){
                 globalScope.getScopedSymbol(id, childNode.getState().getTokenIndex()).changeValue(d_expr(exprNode));
             }
 
@@ -367,7 +394,7 @@ public class SemanticAnalysis {
         else{
             if(globalScope.hasSymbol(id, childNode.getState().getTokenIndex()) &&
                     globalScope.getScopedSymbol(id, childNode.getState().getTokenIndex()).getType()
-                            == Symbol.variableType.STRING){
+                            == Symbol.variableType.String){
                 globalScope.getScopedSymbol(id, childNode.getState().getTokenIndex()).changeValue(s_expr(exprNode));
             }
             else {
@@ -383,7 +410,7 @@ public class SemanticAnalysis {
         if(globalScope.hasSymbol(node.getToken().getTokenText(), node.getState().getTokenIndex())){
             if(globalScope.hasSymbol(node.getToken().getTokenText(), node.getState().getTokenIndex()) &&
                 globalScope.getScopedSymbol(node.getToken().getTokenText(), node.getState().getTokenIndex()).getType()==
-                        Symbol.variableType.INTEGER){
+                        Symbol.variableType.Integer){
                 return true;
             }
         }
@@ -412,8 +439,10 @@ public class SemanticAnalysis {
                         childNode.getToken().getTokenText() + "'", childNode.getToken());
             }
             else{
-                LogError.log(LogError.ErrorType.SYNTAX, "Expected an integer, got " +
-                        childNode.getToken().getTokenType() + " '" +
+                String type = globalScope.getScopedSymbol(childNode.getToken().getTokenText(),
+                        childNode.getState().getTokenIndex()).getType().toString();
+                LogError.log(LogError.ErrorType.SYNTAX, "Expected an Integer, got " +
+                        type + " '" +
                         childNode.getToken().getTokenText() + "'", childNode.getToken());
             }
         }
@@ -603,7 +632,7 @@ public class SemanticAnalysis {
         if(globalScope.hasSymbol(node.getToken().getTokenText(), node.getState().getTokenIndex())){
             if(globalScope.getScopedSymbol(node.getToken().getTokenText(), node.getState().getTokenIndex()) != null &&
                     globalScope.getScopedSymbol(node.getToken().getTokenText(),
-                            node.getState().getTokenIndex()).getType()== Symbol.variableType.DOUBLE){
+                            node.getState().getTokenIndex()).getType()== Symbol.variableType.Double){
                 return true;
             }
         }
@@ -632,8 +661,10 @@ public class SemanticAnalysis {
                         childNode.getToken().getTokenText() + "'", childNode.getToken());
             }
             else{
-                LogError.log(LogError.ErrorType.RUNTIME, "Expected a double, got " +
-                        childNode.getToken().getTokenType() + " '" +
+                String type = globalScope.getScopedSymbol(childNode.getToken().getTokenText(),
+                        childNode.getState().getTokenIndex()).getType().toString();
+                LogError.log(LogError.ErrorType.RUNTIME, "Expected a Double, got " +
+                        type + " '" +
                         childNode.getToken().getTokenText() + "'", childNode.getToken());
             }
         }
@@ -736,7 +767,7 @@ public class SemanticAnalysis {
         if(globalScope.hasSymbol(node.getToken().getTokenText(), node.getState().getTokenIndex())){
             if(globalScope.getScopedSymbol(node.getToken().getTokenText(), node.getState().getTokenIndex()) != null &&
                     globalScope.getScopedSymbol(node.getToken().getTokenText(),
-                            node.getState().getTokenIndex()).getType()== Symbol.variableType.STRING){
+                            node.getState().getTokenIndex()).getType()== Symbol.variableType.String){
                 return true;
             }
         }
@@ -785,8 +816,10 @@ public class SemanticAnalysis {
                         childNode.getToken().getTokenText() + "'", childNode.getToken());
             }
             else{
-                LogError.log(LogError.ErrorType.RUNTIME, "Expected a string, got " +
-                        childNode.getToken().getTokenType() + " '" +
+                String type = globalScope.getScopedSymbol(childNode.getToken().getTokenText(),
+                        childNode.getState().getTokenIndex()).getType().toString();
+                LogError.log(LogError.ErrorType.RUNTIME, "Expected a String, got " +
+                        type + " '" +
                         childNode.getToken().getTokenText() + "'", childNode.getToken());
             }
         }

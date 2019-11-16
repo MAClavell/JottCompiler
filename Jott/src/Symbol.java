@@ -1,5 +1,5 @@
 public class Symbol <T>{
-    enum variableType{INTEGER, DOUBLE, STRING}
+    enum variableType{Integer, Double, String}
 
     private variableType type;
     private String varName;
