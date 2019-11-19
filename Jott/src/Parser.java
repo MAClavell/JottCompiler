@@ -22,6 +22,7 @@ public class Parser {
     public final static String DOUBLE="Double";
     public final static String INTEGER="Integer";
     public final static String STRING="String";
+    public final static String VOID="Void";
 
     // TODO exit out if there is a parse error
 
@@ -339,26 +340,27 @@ public class Parser {
                 for_loop(node.addTreeNode(new State(State.stateType.FOR_LOOP)));
 
             }
-            // The Function Declaration
-            else if(tokenStream.get(tokenIndex).getTokenText().equals(TYPE)) {
-                functDec(node.addTreeNode(new State(State.stateType.F_STMT)));
-            }
-            // The Function Call
-            else if(tokenStream.get(tokenIndex).getTokenText().equals(TREMINAL)){
-                functCall(node.addTreeNode(new State(State.stateType.F_CALL)));
-            }
+
             // The assignment stmt
             else if (tokenStream.get(tokenIndex).getTokenType().equals(TokenType.ID) &&
                     tokenIndex+2 < tokenStream.size() && tokenStream.get(tokenIndex+2).getTokenType()==TokenType.Assign) {
                 asmt(node.addTreeNode(new State(State.stateType.ASMT)));
             }
-
             // The reassignment stmt
             else if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.ID)&&
                     tokenIndex+1<tokenStream.size()&&tokenStream.get(tokenIndex+1).getTokenType()==TokenType.Assign){
                 r_asmt(node.addTreeNode(new State(State.stateType.R_ASMT)));
                 node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex), tokenIndex));
                 tokenIndex++;
+            }
+
+            // The Function Declaration
+            else if(isTokenTypeId(tokenStream.get(tokenIndex))) {
+                functDec(node.addTreeNode(new State(State.stateType.F_STMT)));
+            }
+            // The Function Call
+            else if(isFunctCall(tokenIndex)){
+                functCall(node.addTreeNode(new State(State.stateType.F_CALL)));
             }
 
             // The expression statement
@@ -1149,6 +1151,32 @@ public class Parser {
     {
         return tok.getTokenType()==TokenType.Minus ||
                 tok.getTokenType()==TokenType.Plus;
+    }
+
+    /**
+     * Check if a token is an type ID
+     * @param tok Token to check
+     * @return boolean if it is a token id
+     */
+    private static boolean isTokenTypeId(Token tok)
+    {
+        if(tok.getTokenType() == TokenType.ID) {
+            String tokenText = tok.getTokenText();
+            return tokenText == STRING || tokenText == INTEGER
+                    || tokenText == DOUBLE || tokenText == VOID;
+        }
+        return false;
+    }
+
+    /**
+     * Check if a function call is starting
+     * @param index Token to start the check at
+     * @return boolean if a function call is starting
+     */
+    private static boolean isFunctCall(int index)
+    {
+        return tokenStream.get(index).getTokenType() == TokenType.ID &&
+            tokenStream.get(index+1).getTokenType() == TokenType.StartParen;
     }
 
     private static void checkSize(){
