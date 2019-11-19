@@ -229,6 +229,86 @@ public class Parser {
                 tokenStream.get(tokenIndex));
     }
 
+    private static void functDec(TreeNode node)
+    {
+        //may not be a terminal
+        node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
+        tokenIndex++;
+
+        //may not be a terminal
+        node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
+        tokenIndex++;
+
+        if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.StartParen)) {
+            node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex), tokenIndex));
+            tokenIndex++;
+        }
+        else LogError.log(LogError.ErrorType.SYNTAX, "Expected '(', got " +
+                        tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                tokenStream.get(tokenIndex));
+
+        p_list(node.addTreeNode(new State(State.stateType.P_LIST)));
+
+        if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndParen)) {
+            node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex), tokenIndex));
+            tokenIndex++;
+        }
+        else LogError.log(LogError.ErrorType.SYNTAX, "Expected ')', got " +
+                        tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                tokenStream.get(tokenIndex));
+
+        if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.StartBlk)) {
+            node.addTreeNode(new State(State.stateType.START_BLCK, tokenStream.get(tokenIndex), tokenIndex));
+            tokenIndex++;
+        }
+        else LogError.log(LogError.ErrorType.SYNTAX, "Expected '{', got " +
+                        tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                tokenStream.get(tokenIndex));
+
+        b_stmt_list(node.addTreeNode(new State(State.stateType.B_STMT_LIST)));
+
+        if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndBlk)) {
+            node.addTreeNode(new State(State.stateType.END_BLCK, tokenStream.get(tokenIndex), tokenIndex));
+            tokenIndex++;
+        }
+        else LogError.log(LogError.ErrorType.SYNTAX, "Expected '}', got " +
+                        tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                tokenStream.get(tokenIndex));
+    }
+
+    private static void functCall(TreeNode node)
+    {
+        //may not be a terminal
+        node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
+        tokenIndex++;
+
+        if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.StartParen)) {
+            node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex), tokenIndex));
+            tokenIndex++;
+        }
+        else LogError.log(LogError.ErrorType.SYNTAX, "Expected '(', got " +
+                        tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                tokenStream.get(tokenIndex));
+
+        p_list(node.addTreeNode(new State(State.stateType.P_LIST)));
+
+        if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndParen)) {
+            node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex), tokenIndex));
+            tokenIndex++;
+        }
+        else LogError.log(LogError.ErrorType.SYNTAX, "Expected ')', got " +
+                        tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                tokenStream.get(tokenIndex));
+        
+        if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndStmt)) {
+            node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex), tokenIndex));
+            tokenIndex++;
+        }
+        else LogError.log(LogError.ErrorType.SYNTAX, "Expected ';', got " +
+                        tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                tokenStream.get(tokenIndex));
+    }
+
     /**
      *  Deals with parsing a stmt into its various parts
      * @param node the node to branch off of
@@ -259,7 +339,14 @@ public class Parser {
                 for_loop(node.addTreeNode(new State(State.stateType.FOR_LOOP)));
 
             }
-
+            // The Function Declaration
+            else if(tokenStream.get(tokenIndex).getTokenText().equals(TYPE)) {
+                functDec(node.addTreeNode(new State(State.stateType.F_STMT)));
+            }
+            // The Function Call
+            else if(tokenStream.get(tokenIndex).getTokenText().equals(TREMINAL)){
+                functCall(node.addTreeNode(new State(State.stateType.F_CALL)));
+            }
             // The assignment stmt
             else if (tokenStream.get(tokenIndex).getTokenType().equals(TokenType.ID) &&
                     tokenIndex+2 < tokenStream.size() && tokenStream.get(tokenIndex+2).getTokenType()==TokenType.Assign) {
