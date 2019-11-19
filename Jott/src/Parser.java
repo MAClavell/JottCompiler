@@ -275,13 +275,21 @@ public class Parser {
         else LogError.log(LogError.ErrorType.SYNTAX, "Expected '}', got " +
                         tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
                 tokenStream.get(tokenIndex));
+
+        //TOOD: Register function call in reference
     }
 
-    private static void functCall(TreeNode node)
+    private static TreeNode functCall()
     {
-        //may not be a terminal
-        node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
-        tokenIndex++;
+        TreeNode node = new TreeNode(new State(State.stateType.F_CALL));
+
+        if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.ID)) {
+            node.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex), tokenIndex));
+            tokenIndex++;
+        }
+        else LogError.log(LogError.ErrorType.SYNTAX, "Expected an ID <name>, got " +
+                    tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+            tokenStream.get(tokenIndex));
 
         if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.StartParen)) {
             node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex), tokenIndex));
@@ -308,6 +316,8 @@ public class Parser {
         else LogError.log(LogError.ErrorType.SYNTAX, "Expected ';', got " +
                         tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
                 tokenStream.get(tokenIndex));
+
+        return node;
     }
 
     /**
@@ -360,7 +370,7 @@ public class Parser {
             }
             // The Function Call
             else if(isFunctCall(tokenIndex)){
-                functCall(node.addTreeNode(new State(State.stateType.F_CALL)));
+                node.addTreeNode(functCall());
             }
 
             // The expression statement
@@ -667,9 +677,19 @@ public class Parser {
         Token token = tokenStream.get(tokenIndex);
         if(token.getTokenType().equals(TokenType.ID))
         {
-            first = new TreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex), tokenIndex));
-            idFound = true;
-            tokenIndex++;
+            //Check for function call first
+            if(isFunctCall(tokenIndex))
+            {
+                first = new TreeNode(new State(numExprType));
+                first.addTreeNode(functCall());
+            }
+            //Normal ID instead
+            else
+            {
+                first = new TreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex), tokenIndex));
+                idFound = true;
+                tokenIndex++;
+            }
         }
         else first = findNumNode(numType, numTokenType);
 
@@ -1055,9 +1075,17 @@ public class Parser {
         }
 
         // s_expr-> <id>
+        // s_expr-> str-> funcCall
         else if(tokenStream.get(tokenIndex).getTokenType()==TokenType.ID){
-            parentExprNode.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex), tokenIndex));
-            tokenIndex++;
+            if(isFunctCall(tokenIndex))
+            {
+                TreeNode str = parentExprNode.addTreeNode(new State(State.stateType.STR));
+                str.addTreeNode(functCall());
+            }
+            else {
+                parentExprNode.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex), tokenIndex));
+                tokenIndex++;
+            }
             return parentExprNode;
         }
 
