@@ -1267,8 +1267,8 @@ public class Parser {
     {
         if(tok.getTokenType() == TokenType.ID) {
             String tokenText = tok.getTokenText();
-            return tokenText == STRING || tokenText == INTEGER
-                    || tokenText == DOUBLE || tokenText == VOID;
+            return tokenText.equals(STRING) || tokenText.equals(INTEGER)
+                    || tokenText.equals(DOUBLE) || tokenText.equals(VOID);
         }
         return false;
     }
