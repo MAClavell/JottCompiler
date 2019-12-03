@@ -276,7 +276,7 @@ public class Parser {
                         tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
                 tokenStream.get(tokenIndex));
 
-        //TOOD: Register function call in reference
+        //TODO: Register function call in reference
     }
 
     private static TreeNode functCall()

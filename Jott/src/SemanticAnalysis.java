@@ -91,8 +91,29 @@ public class SemanticAnalysis {
             if(node.getChildren().get(0).getState().getState()== State.stateType.ID){
                 String id=node.getChildren().get(0).getToken().getTokenText();
 
+                // If it is a function call
+                if(node.getChildren().get(2).getState().getState()== State.stateType.START_PAREN){
+
+                    // The function call with no parameters
+                    if(node.getChildren().get(3).getState().getState()== State.stateType.END_PAREN){
+
+                    }
+
+                    // The function call with some parameters
+                    else if(node.getChildren().get(4).getState().getState()== State.stateType.END_PAREN){
+
+                    }
+
+                    else{
+                        LogError.log(LogError.ErrorType.SYNTAX,
+                                "Bad function syntax",
+                                node.getChildren().get(0).getToken());
+                    }
+
+                }
+
                 // If it is a valid id
-                if(globalScope.hasSymbol(id, node.getChildren().get(0).getState().getTokenIndex())){
+                else if(globalScope.hasSymbol(id, node.getChildren().get(0).getState().getTokenIndex())){
 
                     // If the id is not null
                     if(globalScope.getScopedSymbol(id, node.getChildren().get(0).getState().getTokenIndex())!=null){
