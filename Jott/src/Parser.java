@@ -232,13 +232,25 @@ public class Parser {
 
     private static void functDec(TreeNode node)
     {
-        //may not be a terminal
-        node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
-        tokenIndex++;
+        //Add the function type
+        if(isTokenTypeId(tokenStream.get(tokenIndex)))
+        {
+            node.addTreeNode(new State(State.stateType.TYPE, tokenStream.get(tokenIndex), tokenIndex));
+            tokenIndex++;
+        }
+        else LogError.log(LogError.ErrorType.SYNTAX, "Expected a Type, got " +
+                        tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                tokenStream.get(tokenIndex));
 
-        //may not be a terminal
-        node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
-        tokenIndex++;
+        //Add the function name
+        if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.ID))
+        {
+            node.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex), tokenIndex));
+            tokenIndex++;
+        }
+        else LogError.log(LogError.ErrorType.SYNTAX, "Expected an ID function name, got " +
+                        tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                tokenStream.get(tokenIndex));
 
         if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.StartParen)) {
             node.addTreeNode(new State(State.stateType.START_PAREN, tokenStream.get(tokenIndex), tokenIndex));
@@ -299,7 +311,7 @@ public class Parser {
                         tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
                 tokenStream.get(tokenIndex));
 
-        p_list(node.addTreeNode(new State(State.stateType.P_LIST)));
+        fc_p_list(node.addTreeNode(new State(State.stateType.P_LIST)));
 
         if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndParen)) {
             node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex), tokenIndex));
@@ -567,7 +579,7 @@ public class Parser {
 
         // asmt_stmt -> <type>  <id > = <expr ><end_statement>
         // Adds a terminal with the Type's name with the corresponding token
-        node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
+        node.addTreeNode(new State(State.stateType.TYPE, tokenStream.get(tokenIndex), tokenIndex));
         tokenIndex++;
 
         // Adds the id
