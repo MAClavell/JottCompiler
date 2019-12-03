@@ -291,6 +291,51 @@ public class Parser {
         //TODO: Register function call in reference
     }
 
+    /**
+     * Deals with the parsing of function parameters
+     * @param node the node to parse
+     */
+    private static void p_list(TreeNode node){
+        Token token= tokenStream.get(tokenIndex);
+
+        // Checks if the EndParen is next. If not, recursive call.
+        if(token.getTokenType() != TokenType.EndParen) {
+
+            // Check for TYPE
+            if (isTokenTypeId(token)) {
+                node.addTreeNode(new State(State.stateType.TYPE, tokenStream.get(tokenIndex), tokenIndex));
+                tokenIndex++;
+            }
+            else {
+                LogError.log(LogError.ErrorType.RUNTIME, "Unknown type '" + token.getTokenText() + "'",
+                        tokenStream.get(tokenIndex));
+            }
+
+            // Check for ID
+            if (tokenStream.get(tokenIndex).getTokenType().equals(TokenType.ID)) {
+                node.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex), tokenIndex));
+                tokenIndex++;
+            }
+            else {
+                LogError.log(LogError.ErrorType.RUNTIME, "Unknown id '" + token.getTokenText() + "'",
+                        tokenStream.get(tokenIndex));
+            }
+
+            // Check for COMMA
+            if (tokenStream.get(tokenIndex).getTokenType().equals(TokenType.Comma)) {
+                node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
+                tokenIndex++;
+            }
+            else {
+                LogError.log(LogError.ErrorType.RUNTIME, "Expected ',', got " +
+                                tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                        tokenStream.get(tokenIndex));
+            }
+
+            p_list(node.addTreeNode(new State(State.stateType.P_LIST)));
+        }
+    }
+
     private static TreeNode functCall()
     {
         TreeNode node = new TreeNode(new State(State.stateType.F_CALL));
