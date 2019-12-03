@@ -30,14 +30,8 @@ public class Jott {
         //}
         //System.out.println("");
 
-        Reference global=new Reference(0, Reference.ReferenceType.GLOBAL);
-        global.addEndToken(tokens.size()-1);
-
-        // Symbol table
-        HashMap<String, Symbol> symbolTable = new HashMap<String, Symbol>();
-
-        // The reference table
-        HashMap<String, Reference> referenceTable=new HashMap<String, Reference>();
+        Reference global=new Reference(0);
+        global.endRecentReference(tokens.size()-1);
 
         TreeNode root = Parser.parse(tokens, global);
         //System.out.println(root);

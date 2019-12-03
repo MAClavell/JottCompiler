@@ -2,19 +2,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Reference {
-    enum ReferenceType{GLOBAL, FUNCTION, IF, WHILE, FOR}
 
     private static int referenceNumber=0;
 
     private int startToken;
     private int endToken;
-    private ReferenceType type;
     private HashMap<String, Symbol> scopedSymbols;
     private HashMap<String, Reference> scopes;
 
-    public Reference(int startToken, ReferenceType referenceType){
+    public Reference(int startToken){
         this.startToken=startToken;
-        this.type=referenceType;
         this.scopedSymbols=new HashMap<String, Symbol>();
         this.scopes=new HashMap<String, Reference>();
     }
@@ -35,11 +32,20 @@ public class Reference {
         return endToken;
     }
 
-    public void addEndToken(int token){
+    /**
+     * Adds the end token index
+     * @param token the token index of the end
+     */
+    private void addEndToken(int token){
         this.endToken=token;
     }
 
-    public void addSymbolToScope(String symbolName, Symbol s){
+    /**
+     * Adds a symbol to the currend scope
+     * @param symbolName the name of the function
+     * @param s the Symbol to add
+     */
+    private void addSymbolToScope(String symbolName, Symbol s){
         scopedSymbols.put(symbolName, s);
     }
 
@@ -53,29 +59,11 @@ public class Reference {
     }
 
     /**
-     * Gets the reference that has an end at a certain point
-     * @param end the end that we wish to look for
-     * @return the reference
-     */
-    public Reference getReferenceWithEnd(int end){
-        for(Reference r:scopes.values()){
-            Reference target=r.getReferenceWithEnd(end);
-            if(r.getEndToken()==end){
-                return r;
-            }
-            else if(target!=null){
-                return target;
-            }
-        }
-        return null;
-    }
-
-    /**
      * Gets the scope at a certain point
      * @param token the token of the reference
      * @return
      */
-    public Reference getReferenceAt(int token){
+    private Reference getReferenceAt(int token){
         for(Reference r:scopes.values()){
             if(r.getStartToken()<=token && r.getEndToken()>=token){
                 return r;
@@ -107,6 +95,16 @@ public class Reference {
     }
 
 
+    public void addSymbolAt(int token, String name, Symbol symbol){
+        Reference scope=getReferenceAt(token);
+        if(scope!=null){
+            scope.addSymbolToScope(name, symbol);
+        }
+        else{
+            scopedSymbols.put(name, symbol);
+        }
+    }
+
     /**
      * Gets the most scoped Symbol in the scope/subscopes
      * @param name the name of the token
@@ -125,7 +123,7 @@ public class Reference {
         Reference scope=getReferenceAt(token);
 
         // Recursively calls the function to get its scoped symbol
-        Symbol scopedSymbol=scope.getReferenceAt(token).getScopedSymbol(name, token);
+        Symbol scopedSymbol=scope.getScopedSymbol(name, token);
 
         // There is a symbol with that name in a smaller scope if it is not null
         if(scopedSymbol!=null){
@@ -146,18 +144,30 @@ public class Reference {
 
     /**
      * Adds a new reference to the scope
-     * @param scope the scope to add a reference to
      * @param start the start of the scope
      * @param name the name of the function
-     * @param type the type of the reference
      */
-    public void addReference(Reference scope, int start, String name, ReferenceType type){
-        if(type!=ReferenceType.FUNCTION){
-            scope.addReferenceToScope(referenceNumber+"", new Reference(start, type));
-            referenceNumber++;
+    public void addReference(int start, String name){
+        addReferenceToScope(name, new Reference(start));
+        referenceNumber++;
+    }
+
+    /**
+     * Adds the end brace to the reference
+     * @param token the end of the current reference
+     */
+    public void endRecentReference(int token){
+        Reference closestReference=null;
+        for(Reference scope:scopes.values()){
+            if(scope.getStartToken()<token && (closestReference==null || closestReference.getStartToken()<=scope.getStartToken())){
+                closestReference=scope;
+            }
+        }
+        if(closestReference==null){
+            endToken=token;
         }
         else{
-            scope.addReferenceToScope(name, new Reference(start, type));
+            closestReference.endRecentReference(token);
         }
     }
 
