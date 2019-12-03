@@ -248,7 +248,7 @@ public class Parser {
                         tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
                 tokenStream.get(tokenIndex));
 
-        p_list(node.addTreeNode(new State(State.stateType.P_LIST)));
+        //p_list(node.addTreeNode(new State(State.stateType.P_LIST)));
 
         if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndParen)) {
             node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex), tokenIndex));
@@ -299,7 +299,7 @@ public class Parser {
                         tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
                 tokenStream.get(tokenIndex));
 
-        p_list(node.addTreeNode(new State(State.stateType.P_LIST)));
+        //p_list(node.addTreeNode(new State(State.stateType.P_LIST)));
 
         if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndParen)) {
             node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex), tokenIndex));

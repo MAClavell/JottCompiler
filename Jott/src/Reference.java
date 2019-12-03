@@ -185,4 +185,14 @@ public class Reference {
         }
         scopeToAdd.addSymbolToScope(name, s);
     }
+
+    /**
+     * Adds a reference at a certain token
+     * @param startToken
+     * @param referenceName
+     */
+    private void addReferenceAt(int startToken, String referenceName){
+        Reference r = getReferenceAt(startToken);
+        r.addReferenceToScope(referenceName, new Reference(startToken));
+    }
 }
