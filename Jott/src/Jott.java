@@ -25,10 +25,10 @@ public class Jott {
 
         //Create tokens from file
         ArrayList<Token> tokens = Scanner.tokenize(text, args[0]);
-        //for (Token t : tokens) {
-        //    System.out.println(t);
-        //}
-        //System.out.println("");
+        for (Token t : tokens) {
+            System.out.println(t);
+        }
+        System.out.println("");
 
         Reference global=new Reference(0);
         global.endRecentReference(tokens.size()-1);
