@@ -7,13 +7,17 @@ public class Reference {
 
     private int startToken;
     private int endToken;
+    private State returnState;
     private HashMap<String, Symbol> scopedSymbols;
     private HashMap<String, Reference> scopes;
 
-    public Reference(int startToken){
+    public Reference(int startToken, State returnState){
         this.startToken=startToken;
         this.scopedSymbols=new HashMap<String, Symbol>();
         this.scopes=new HashMap<String, Reference>();
+        if(returnState.getState()==State.stateType.TYPE){
+            this.returnState=returnState;
+        }
     }
 
     /**
@@ -147,8 +151,8 @@ public class Reference {
      * @param start the start of the scope
      * @param name the name of the function
      */
-    public void addReference(int start, String name){
-        addReferenceToScope(name, new Reference(start));
+    public void addReference(int start, String name, State state){
+        addReferenceToScope(name, new Reference(start, state));
         referenceNumber++;
     }
 
@@ -184,15 +188,5 @@ public class Reference {
             scopeToAdd=scope;
         }
         scopeToAdd.addSymbolToScope(name, s);
-    }
-
-    /**
-     * Adds a reference at a certain token
-     * @param startToken
-     * @param referenceName
-     */
-    private void addReferenceAt(int startToken, String referenceName){
-        Reference r = getReferenceAt(startToken);
-        r.addReferenceToScope(referenceName, new Reference(startToken));
     }
 }
