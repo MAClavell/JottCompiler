@@ -326,11 +326,7 @@ public class Parser {
                 node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
                 tokenIndex++;
             }
-            else {
-                LogError.log(LogError.ErrorType.RUNTIME, "Expected ',', got " +
-                                tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
-                        tokenStream.get(tokenIndex));
-            }
+            // ELSE SHOULD BE END PARAM
 
             p_list(node.addTreeNode(new State(State.stateType.P_LIST)));
         }
