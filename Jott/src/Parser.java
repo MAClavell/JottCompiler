@@ -292,7 +292,7 @@ public class Parser {
     }
 
     /**
-     * Deals with the parsing of function parameters
+     * Deals with the parsing of parameters in a function definition
      * @param node the node to parse
      */
     private static void p_list(TreeNode node){
@@ -329,6 +329,30 @@ public class Parser {
             // ELSE SHOULD BE END PARAM
 
             p_list(node.addTreeNode(new State(State.stateType.P_LIST)));
+        }
+    }
+
+    /**
+     * Deals with the parsing of parameters being passed into a function
+     * @param node the node to parse
+     */
+    private static void fc_p_list(TreeNode node){
+        Token token= tokenStream.get(tokenIndex);
+
+        // Checks if the EndParen is next. If not, recursive call.
+        if(token.getTokenType() != TokenType.EndParen) {
+
+            // Check for EXPRESSION
+            expr(node);
+
+            // Check for COMMA
+            if (tokenStream.get(tokenIndex).getTokenType().equals(TokenType.Comma)) {
+                node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
+                tokenIndex++;
+            }
+            // ELSE SHOULD BE END PARAM
+
+            fc_p_list(node.addTreeNode(new State(State.stateType.P_LIST)));
         }
     }
 
