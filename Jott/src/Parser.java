@@ -306,7 +306,11 @@ public class Parser {
 
         // Checks if is return stmt
         if (tokenStream.get(tokenIndex).getTokenText().equals(RETURN)) {
-            // TODO: RETURN EXPR OR RETURN S_EXPR
+            // ADDED RETURN STATE NOT SURE IF THIS IS CORRECT!?
+            node.addTreeNode(new State(State.stateType.RETURN, tokenStream.get(tokenIndex), tokenIndex));
+            tokenIndex++;
+
+            // TODO: EXPR OR S_EXPR
         }
         else if (token.getTokenType() != TokenType.EndParen) {
             stmt(node);
