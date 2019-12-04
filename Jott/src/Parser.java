@@ -23,6 +23,7 @@ public class Parser {
     public final static String INTEGER="Integer";
     public final static String STRING="String";
     public final static String VOID="Void";
+    public final static String RETURN="return";
 
     // TODO exit out if there is a parse error
 
@@ -278,7 +279,9 @@ public class Parser {
                         tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
                 tokenStream.get(tokenIndex));
 
-        b_stmt_list(node.addTreeNode(new State(State.stateType.B_STMT_LIST)));
+        // f_stmt
+        // TO DO f_stmt
+        stmt_list(node.addTreeNode(new State(State.stateType.B_STMT_LIST)));
 
         if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndBlk)) {
             node.addTreeNode(new State(State.stateType.END_BLCK, tokenStream.get(tokenIndex), tokenIndex));
@@ -289,7 +292,38 @@ public class Parser {
                 tokenStream.get(tokenIndex));
 
         // TODO: Register function call in reference
-        // Reference.addReferenceAt FILL PARAMS
+        // Store return type as variable to input to function
+        // Reference.addReference()
+        // Add variables aka parameters to scope
+    }
+
+    /**
+     *  Deals with parsing stmts within a function along with the return value
+     * @param node the node to branch off of
+     */
+    private static void f_stmt(TreeNode node) {
+        Token token = tokenStream.get(tokenIndex);
+
+        // Checks if is return stmt
+        if (tokenStream.get(tokenIndex).getTokenText().equals(RETURN)) {
+            // RETURN EXPR
+            // OR RETURN S_EXPR
+        }
+        else if (token.getTokenType() != TokenType.EndParen) {
+            stmt(node);
+
+            // Check for semicolon
+            if (tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndStmt)) {
+                node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex), tokenIndex));
+                tokenIndex++;
+            }
+
+            f_stmt(node);
+        }
+        // Adds an epsilon otherwise
+        else{
+            node.addTreeNode(new State(State.stateType.EPSILON));
+        }
     }
 
     /**
