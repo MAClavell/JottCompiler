@@ -306,8 +306,7 @@ public class Parser {
 
         // Checks if is return stmt
         if (tokenStream.get(tokenIndex).getTokenText().equals(RETURN)) {
-            // RETURN EXPR
-            // OR RETURN S_EXPR
+            // TODO: RETURN EXPR OR RETURN S_EXPR
         }
         else if (token.getTokenType() != TokenType.EndParen) {
             stmt(node);
@@ -318,6 +317,7 @@ public class Parser {
                 tokenIndex++;
             }
 
+            // Recursive call
             f_stmt(node);
         }
         // Adds an epsilon otherwise
