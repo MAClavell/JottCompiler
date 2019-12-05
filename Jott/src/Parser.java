@@ -281,7 +281,7 @@ public class Parser {
 
         // f_stmt
         // TO DO f_stmt
-        stmt_list(node.addTreeNode(new State(State.stateType.B_STMT_LIST)));
+        f_stmt(node.addTreeNode(new State(State.stateType.F_STMT)));
 
         if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndBlk)) {
             node.addTreeNode(new State(State.stateType.END_BLCK, tokenStream.get(tokenIndex), tokenIndex));
