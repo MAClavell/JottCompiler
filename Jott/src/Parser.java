@@ -293,7 +293,7 @@ public class Parser {
 
         // TODO: Register function call in reference
         // Store return type as variable to input to function
-        // Reference.addReference()
+        // globalScope.addReference(tokenIndex, );
         // Add variables aka parameters to scope
     }
 
