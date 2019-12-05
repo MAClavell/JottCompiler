@@ -233,12 +233,13 @@ public class Parser {
 
     private static void functDec(TreeNode node)
     {
-        State returnState = null;
+        ValidType returnType = null;
         //Add the function type
         if(isTokenTypeId(tokenStream.get(tokenIndex)))
         {
-            returnState = new State(State.stateType.TYPE, tokenStream.get(tokenIndex), tokenIndex);
-            node.addTreeNode(returnState);
+            node.addTreeNode(new State(State.stateType.TYPE, tokenStream.get(tokenIndex), tokenIndex));
+            //Find return type
+            returnType = getTypeFromString(tokenStream.get(tokenIndex).getTokenText());
             tokenIndex++;
         }
         else LogError.log(LogError.ErrorType.SYNTAX, "Expected a Type, got " +
@@ -265,7 +266,11 @@ public class Parser {
                         tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
                 tokenStream.get(tokenIndex));
 
-        p_list(node.addTreeNode(new State(State.stateType.P_LIST)));
+        //Create scope and add paremeters
+        Reference funcScope = globalScope.addReference(functionName, returnType);
+        if(isTokenTypeId(tokenStream.get(tokenIndex))) {
+            p_list(node.addTreeNode(new State(State.stateType.P_LIST)), funcScope);
+        }
 
         if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndParen)) {
             node.addTreeNode(new State(State.stateType.END_PAREN, tokenStream.get(tokenIndex), tokenIndex));
@@ -284,8 +289,7 @@ public class Parser {
                 tokenStream.get(tokenIndex));
 
         // f_stmt
-        // TO DO f_stmt
-        Integer startRefIndex = tokenIndex;
+        funcScope.setStartIndex(tokenIndex);
         f_stmt(node.addTreeNode(new State(State.stateType.F_STMT)));
 
         if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndBlk)) {
@@ -296,9 +300,7 @@ public class Parser {
                         tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
                 tokenStream.get(tokenIndex));
 
-        // Store return type as variable to input to function
-        // Add variables aka parameters to scope
-        globalScope.addReference(startRefIndex, functionName, returnState);
+        funcScope.endRecentReference(tokenIndex);
     }
 
     /**
@@ -314,6 +316,15 @@ public class Parser {
             tokenIndex++;
 
             expr(node);
+
+            //Add end statement
+            if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndStmt)) {
+                node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex), tokenIndex));
+                tokenIndex++;
+            }
+            else LogError.log(LogError.ErrorType.SYNTAX, "Expected ';', got " +
+                            tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                    tokenStream.get(tokenIndex));
         }
         else if (token.getTokenType() != TokenType.EndParen) {
             stmt(node);
@@ -337,40 +348,42 @@ public class Parser {
      * Deals with the parsing of parameters in a function definition
      * @param node the node to parse
      */
-    private static void p_list(TreeNode node){
-        Token token= tokenStream.get(tokenIndex);
-
+    private static void p_list(TreeNode node, Reference funcScope){
         // Checks if the EndParen is next. If not, recursive call.
-        if(token.getTokenType() != TokenType.EndParen) {
+        if(isTokenTypeId(tokenStream.get(tokenIndex))) {
 
-            // Check for TYPE
-            if (isTokenTypeId(token)) {
-                node.addTreeNode(new State(State.stateType.TYPE, tokenStream.get(tokenIndex), tokenIndex));
-                tokenIndex++;
-            }
-            else {
-                LogError.log(LogError.ErrorType.RUNTIME, "Unknown type '" + token.getTokenText() + "'",
+            //Add type
+            node.addTreeNode(new State(State.stateType.TYPE, tokenStream.get(tokenIndex), tokenIndex));
+            ValidType varType = getTypeFromString(tokenStream.get(tokenIndex).getTokenText());
+            tokenIndex++;
+
+            //Can't be void
+            if(varType == ValidType.Void) {
+                LogError.log(LogError.ErrorType.SYNTAX, "Type 'Void' cannot be used as a variable type",
                         tokenStream.get(tokenIndex));
             }
 
             // Check for ID
             if (tokenStream.get(tokenIndex).getTokenType().equals(TokenType.ID)) {
                 node.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex), tokenIndex));
+                //Add parameter to scope
+                addVariableToScope(varType, funcScope);
                 tokenIndex++;
             }
             else {
-                LogError.log(LogError.ErrorType.RUNTIME, "Unknown id '" + token.getTokenText() + "'",
+                LogError.log(LogError.ErrorType.RUNTIME, "Unknown id '" + tokenStream.get(tokenIndex).getTokenText() + "'",
                         tokenStream.get(tokenIndex));
             }
+
 
             // Check for COMMA
             if (tokenStream.get(tokenIndex).getTokenType().equals(TokenType.Comma)) {
                 node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
                 tokenIndex++;
-            }
-            // ELSE SHOULD BE END PARAM
 
-            p_list(node.addTreeNode(new State(State.stateType.P_LIST)));
+                //Recurse
+                p_list(node.addTreeNode(new State(State.stateType.P_LIST)), funcScope);
+            }
         }
     }
 
@@ -379,10 +392,8 @@ public class Parser {
      * @param node the node to parse
      */
     private static void fc_p_list(TreeNode node){
-        Token token= tokenStream.get(tokenIndex);
-
-        // Checks if the EndParen is next. If not, recursive call.
-        if(token.getTokenType() != TokenType.EndParen) {
+        // Checks if the EndParen is next. If not, create an expression
+        if(tokenStream.get(tokenIndex).getTokenType() != TokenType.EndParen) {
 
             // Check for EXPRESSION
             expr(node);
@@ -391,10 +402,10 @@ public class Parser {
             if (tokenStream.get(tokenIndex).getTokenType().equals(TokenType.Comma)) {
                 node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
                 tokenIndex++;
-            }
-            // ELSE SHOULD BE END PARAM
 
-            fc_p_list(node.addTreeNode(new State(State.stateType.P_LIST)));
+                //Recurse
+                fc_p_list(node.addTreeNode(new State(State.stateType.P_LIST)));
+            }
         }
     }
 
@@ -428,14 +439,6 @@ public class Parser {
                         tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
                 tokenStream.get(tokenIndex));
         
-        if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndStmt)) {
-            node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex), tokenIndex));
-            tokenIndex++;
-        }
-        else LogError.log(LogError.ErrorType.SYNTAX, "Expected ';', got " +
-                        tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
-                tokenStream.get(tokenIndex));
-
         return node;
     }
 
@@ -485,7 +488,7 @@ public class Parser {
 
             // The Function Declaration
             else if(isTokenTypeId(tokenStream.get(tokenIndex))) {
-                functDec(node.addTreeNode(new State(State.stateType.F_STMT)));
+                functDec(node);
             }
             // The Function Call
             else if(isFunctCall(tokenIndex)){
@@ -563,11 +566,24 @@ public class Parser {
         }
     }
 
-    private static void r_asmt(TreeNode node){
-        node.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex), tokenIndex));
-        tokenIndex++;
-        node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
-        tokenIndex++;
+    private static void r_asmt(TreeNode node)
+    {
+        if (tokenStream.get(tokenIndex).getTokenType() == TokenType.ID)
+        {
+            node.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex), tokenIndex));
+            tokenIndex++;
+        } else LogError.log(LogError.ErrorType.SYNTAX, "Expected a variable name, got " +
+                        tokenStream.get(tokenIndex).getTokenType() + " '" + tokenStream.get(tokenIndex).getTokenText() + "'",
+                tokenStream.get(tokenIndex));
+
+        if (tokenStream.get(tokenIndex).getTokenType() == TokenType.Assign)
+        {
+            node.addTreeNode(new State(State.stateType.TERMINAL, tokenStream.get(tokenIndex), tokenIndex));
+            tokenIndex++;
+        } else LogError.log(LogError.ErrorType.SYNTAX, "Expected '=', got " +
+                        tokenStream.get(tokenIndex).getTokenType() + " '" + tokenStream.get(tokenIndex).getTokenText() + "'",
+                tokenStream.get(tokenIndex));
+
         expr(node.addTreeNode(new State(State.stateType.EXPR)));
     }
 
@@ -599,13 +615,13 @@ public class Parser {
             {
                 // If the id is an integer or has a relational op
                 if(globalScope.getScopedSymbol(tokenStream.get(tokenIndex).getTokenText(), tokenIndex).getType()==
-                    Symbol.variableType.Integer ||
-                    isTokenRelOp(tokenStream.get(tokenIndex+1))){
+                        ValidType.Integer ||
+                        isTokenRelOp(tokenStream.get(tokenIndex+1))){
                     node.addTreeNode(i_expr());
                 }
                 // If the id is a double
                 else if(globalScope.getScopedSymbol(tokenStream.get(tokenIndex).getTokenText(), tokenIndex).getType()==
-                        Symbol.variableType.Double){
+                        ValidType.Double){
                     node.addTreeNode(d_expr());
                 }
                 //Strings
@@ -669,47 +685,23 @@ public class Parser {
      */
     private static void asmt(TreeNode node) {
 
-        String tokenText = tokenStream.get(tokenIndex).getTokenText();
-
         //Get this variable's type
-        Symbol.variableType varType = null;
-        if (tokenText.equals(DOUBLE))
-            varType = Symbol.variableType.Double;
-        else if (tokenText.equals(INTEGER))
-            varType = Symbol.variableType.Integer;
-        else if (tokenText.equals(STRING))
-            varType = Symbol.variableType.String;
-            // An error
-        else
-            LogError.log(LogError.ErrorType.RUNTIME, "Unknown type '" + tokenText + "'",
+        ValidType varType = getTypeFromString(tokenStream.get(tokenIndex).getTokenText());
+        if(varType == ValidType.Void) {
+            LogError.log(LogError.ErrorType.SYNTAX, "Type 'Void' cannot be used as a variable type",
                     tokenStream.get(tokenIndex));
+        }
 
         // asmt_stmt -> <type>  <id > = <expr ><end_statement>
         // Adds a terminal with the Type's name with the corresponding token
         node.addTreeNode(new State(State.stateType.TYPE, tokenStream.get(tokenIndex), tokenIndex));
         tokenIndex++;
 
-        // Adds the id
+        // Adds the id and variable to the scope
+        Symbol s = null;
         if (tokenStream.get(tokenIndex).getTokenType().equals(TokenType.ID)) {
             node.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex), tokenIndex));
-
-            //Generate symbol
-            Symbol s = null;
-            switch (varType) {
-                case Double:
-                    s = new Symbol<Double>(Symbol.variableType.Double, tokenStream.get(tokenIndex).getTokenText());
-                    break;
-                case Integer:
-                    s = new Symbol<Integer>(Symbol.variableType.Integer, tokenStream.get(tokenIndex).getTokenText());
-                    break;
-                case String:
-                    s = new Symbol<String>(Symbol.variableType.String, tokenStream.get(tokenIndex).getTokenText());
-                    break;
-                default:
-                    break;
-            }
-            Reference.addSymbol(globalScope, s, tokenIndex, tokenStream.get(tokenIndex).getTokenText());
-
+            addVariableToScope(varType, globalScope);
             tokenIndex++;
         } else LogError.log(LogError.ErrorType.SYNTAX, "Expected a variable name, got " +
                         tokenStream.get(tokenIndex).getTokenType() + " '" + tokenStream.get(tokenIndex).getTokenText() + "'",
@@ -799,7 +791,7 @@ public class Parser {
             //Check for function call first
             if(isFunctCall(tokenIndex))
             {
-                first = new TreeNode(new State(numExprType));
+                first = new TreeNode(new State(numType));
                 first.addTreeNode(functCall());
             }
             //Normal ID instead
@@ -902,20 +894,34 @@ public class Parser {
         TreeNode root = null;
 
         //Get what symbol type this ID is
-        Symbol.variableType varType = Symbol.variableType.Integer;
+        ValidType varType = ValidType.Integer;
         Token token = tokenStream.get(tokenIndex);
         if(token.getTokenType() == TokenType.ID)
         {
-            if (globalScope.hasSymbol(token.getTokenText(), tokenIndex))
-                varType = globalScope.getScopedSymbol(tokenStream.get(tokenIndex).getTokenText(), tokenIndex).getType();
-            //Variable does not exists
-            else LogError.log(LogError.ErrorType.RUNTIME, "Unknown variable '" +
-                            tokenStream.get(tokenIndex).getTokenText()+"'",
-                    tokenStream.get(tokenIndex));
+            //ID is a function call
+            if(isFunctCall(tokenIndex)) {
+                Reference r = globalScope.getReferenceWithName(token.getTokenText());
+                if(r != null) {
+                    varType = r.getReturnType();
+                }
+                else LogError.log(LogError.ErrorType.RUNTIME, "Unknown function '" +
+                                tokenStream.get(tokenIndex).getTokenText() + "'",
+                        tokenStream.get(tokenIndex));
+            }
+            //ID is a variable
+            else
+            {
+                if (globalScope.hasSymbol(token.getTokenText(), tokenIndex))
+                    varType = globalScope.getScopedSymbol(tokenStream.get(tokenIndex).getTokenText(), tokenIndex).getType();
+                    //Variable does not exists
+                else LogError.log(LogError.ErrorType.RUNTIME, "Unknown variable '" +
+                                tokenStream.get(tokenIndex).getTokenText() + "'",
+                        tokenStream.get(tokenIndex));
+            }
         }
 
         //Find string relations
-        if(isTokenTypeString(tokenStream.get(tokenIndex)) || varType == Symbol.variableType.String) {
+        if(isTokenTypeString(tokenStream.get(tokenIndex)) || varType == ValidType.String) {
             TreeNode first = s_expr();
             if (first != null) {
                 //Check for relative op and another s_expr
@@ -934,7 +940,7 @@ public class Parser {
         }
 
         //Find double relations
-        else if(isTokenTypeDouble(tokenIndex) || varType == Symbol.variableType.Double) {
+        else if(isTokenTypeDouble(tokenIndex) || varType == ValidType.Double) {
             TreeNode first = d_expr();
             if (first != null) {
                 //Check for relative op and another d_expr
@@ -1324,6 +1330,54 @@ public class Parser {
     {
         return tokenStream.get(index).getTokenType() == TokenType.ID &&
             tokenStream.get(index+1).getTokenType() == TokenType.StartParen;
+    }
+
+    /**
+     * Parse a string for a valid type
+     * @param text text to parse
+     * @return type found
+     */
+    private static ValidType getTypeFromString(String text)
+    {
+        if (text.equals(DOUBLE))
+            return ValidType.Double;
+        else if (text.equals(INTEGER))
+            return ValidType.Integer;
+        else if (text.equals(STRING))
+            return ValidType.String;
+        else if (text.equals(VOID))
+            return ValidType.Void;
+
+        //Error
+        LogError.log(LogError.ErrorType.SYNTAX, "Unknown type '" + text + "'",
+                tokenStream.get(tokenIndex));
+        return null;
+    }
+
+    /**
+     * Add a variable to a scope
+     * @param varType type the variable is
+     * @param scope scope to add it to
+     */
+    private static void addVariableToScope(ValidType varType, Reference scope)
+    {
+        Symbol s = null;
+        //Generate symbol
+        switch (varType) {
+            case Double:
+                s = new Symbol<Double>(ValidType.Double, tokenStream.get(tokenIndex).getTokenText());
+                break;
+            case Integer:
+                s = new Symbol<Integer>(ValidType.Integer, tokenStream.get(tokenIndex).getTokenText());
+                break;
+            case String:
+                s = new Symbol<String>(ValidType.String, tokenStream.get(tokenIndex).getTokenText());
+                break;
+            default:
+                break;
+        }
+        //Add the variable to scope
+        Reference.addSymbol(scope, s, tokenIndex, tokenStream.get(tokenIndex).getTokenText());
     }
 
     private static void checkSize(){

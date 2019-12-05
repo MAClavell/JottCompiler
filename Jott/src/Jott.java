@@ -1,5 +1,4 @@
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class Jott {
 
@@ -30,11 +29,11 @@ public class Jott {
         }
         System.out.println("");
 
-        Reference global=new Reference(0);
+        Reference global=new Reference(0, ValidType.Void);
         global.endRecentReference(tokens.size()-1);
 
         TreeNode root = Parser.parse(tokens, global);
-        //System.out.println(root);
+        System.out.println(root);
         SemanticAnalysis.output(root, global);
     }
 }

@@ -304,15 +304,15 @@ public class SemanticAnalysis {
         if(scopedSymbol==null){
             LogError.log(LogError.ErrorType.RUNTIME, "Invalid reassignment", childNode.getToken());
         }
-        else if(scopedSymbol.getType()== Symbol.variableType.Integer &&
+        else if(scopedSymbol.getType()== ValidType.Integer &&
                 grandchildNode.getState().getState()== State.stateType.I_EXPR){
             scopedSymbol.changeValue(i_expr(grandchildNode));
         }
-        else if(scopedSymbol.getType()== Symbol.variableType.Double &&
+        else if(scopedSymbol.getType()== ValidType.Double &&
                 grandchildNode.getState().getState()== State.stateType.D_EXPR){
             scopedSymbol.changeValue(d_expr(grandchildNode));
         }
-        else if(scopedSymbol.getType()== Symbol.variableType.String &&
+        else if(scopedSymbol.getType()== ValidType.String &&
                 grandchildNode.getState().getState()== State.stateType.S_EXPR){
             scopedSymbol.changeValue(s_expr(grandchildNode));
         }
@@ -386,7 +386,7 @@ public class SemanticAnalysis {
             //If this is a valid id
             if(globalScope.hasSymbol(id, childNode.getState().getTokenIndex()) &&
                     globalScope.getScopedSymbol(id, childNode.getState().getTokenIndex()).getType()
-                            == Symbol.variableType.Integer){
+                            == ValidType.Integer){
                 globalScope.getScopedSymbol(id, childNode.getState().getTokenIndex()).changeValue(i_expr(exprNode));
             }
             else {
@@ -400,7 +400,7 @@ public class SemanticAnalysis {
         else if(childNode.getToken().getTokenText().equals("Double")){
             if(globalScope.hasSymbol(id, childNode.getState().getTokenIndex()) &&
                     globalScope.getScopedSymbol(id, childNode.getState().getTokenIndex()).getType()
-                            == Symbol.variableType.Double){
+                            == ValidType.Double){
                 globalScope.getScopedSymbol(id, childNode.getState().getTokenIndex()).changeValue(d_expr(exprNode));
             }
 
@@ -415,7 +415,7 @@ public class SemanticAnalysis {
         else{
             if(globalScope.hasSymbol(id, childNode.getState().getTokenIndex()) &&
                     globalScope.getScopedSymbol(id, childNode.getState().getTokenIndex()).getType()
-                            == Symbol.variableType.String){
+                            == ValidType.String){
                 globalScope.getScopedSymbol(id, childNode.getState().getTokenIndex()).changeValue(s_expr(exprNode));
             }
             else {
@@ -431,7 +431,7 @@ public class SemanticAnalysis {
         if(globalScope.hasSymbol(node.getToken().getTokenText(), node.getState().getTokenIndex())){
             if(globalScope.hasSymbol(node.getToken().getTokenText(), node.getState().getTokenIndex()) &&
                 globalScope.getScopedSymbol(node.getToken().getTokenText(), node.getState().getTokenIndex()).getType()==
-                        Symbol.variableType.Integer){
+                        ValidType.Integer){
                 return true;
             }
         }
@@ -653,7 +653,7 @@ public class SemanticAnalysis {
         if(globalScope.hasSymbol(node.getToken().getTokenText(), node.getState().getTokenIndex())){
             if(globalScope.getScopedSymbol(node.getToken().getTokenText(), node.getState().getTokenIndex()) != null &&
                     globalScope.getScopedSymbol(node.getToken().getTokenText(),
-                            node.getState().getTokenIndex()).getType()== Symbol.variableType.Double){
+                            node.getState().getTokenIndex()).getType()== ValidType.Double){
                 return true;
             }
         }
@@ -788,7 +788,7 @@ public class SemanticAnalysis {
         if(globalScope.hasSymbol(node.getToken().getTokenText(), node.getState().getTokenIndex())){
             if(globalScope.getScopedSymbol(node.getToken().getTokenText(), node.getState().getTokenIndex()) != null &&
                     globalScope.getScopedSymbol(node.getToken().getTokenText(),
-                            node.getState().getTokenIndex()).getType()== Symbol.variableType.String){
+                            node.getState().getTokenIndex()).getType()== ValidType.String){
                 return true;
             }
         }

@@ -1,5 +1,6 @@
-import java.util.ArrayList;
 import java.util.HashMap;
+
+enum ValidType{Integer, Double, String, Void}
 
 public class Reference {
 
@@ -7,17 +8,21 @@ public class Reference {
 
     private int startToken;
     private int endToken;
-    private State returnState;
+    private ValidType returnType;
     private HashMap<String, Symbol> scopedSymbols;
     private HashMap<String, Reference> scopes;
 
-    public Reference(int startToken, State returnState){
+    public Reference(int startToken, ValidType returnType){
         this.startToken=startToken;
         this.scopedSymbols=new HashMap<String, Symbol>();
         this.scopes=new HashMap<String, Reference>();
-        if(returnState.getState()==State.stateType.TYPE){
-            this.returnState=returnState;
-        }
+        this.returnType = returnType;
+    }
+
+    public Reference(ValidType returnType){
+        this.scopedSymbols=new HashMap<String, Symbol>();
+        this.scopes=new HashMap<String, Reference>();
+        this.returnType = returnType;
     }
 
     /**
@@ -127,13 +132,23 @@ public class Reference {
         Reference scope=getReferenceAt(token);
 
         // Recursively calls the function to get its scoped symbol
-        Symbol scopedSymbol=scope.getScopedSymbol(name, token);
-
-        // There is a symbol with that name in a smaller scope if it is not null
-        if(scopedSymbol!=null){
-            symbol=scopedSymbol;
+        if(scope != null) {
+            Symbol scopedSymbol = scope.getScopedSymbol(name, token);
+            // There is a symbol with that name in a smaller scope if it is not null
+            if(scopedSymbol!=null){
+                symbol=scopedSymbol;
+            }
         }
         return symbol;
+    }
+
+    /**
+     * Get the return state of this scope
+     * @return the return type
+     */
+    public ValidType getReturnType()
+    {
+        return returnType;
     }
 
     /**
@@ -151,9 +166,30 @@ public class Reference {
      * @param start the start of the scope
      * @param name the name of the function
      */
-    public void addReference(int start, String name, State state){
-        addReferenceToScope(name, new Reference(start, state));
+    public Reference addReference(int start, String name, ValidType returnType){
+        Reference r = new Reference(start, returnType);
+        addReferenceToScope(name, r);
         referenceNumber++;
+        return r;
+    }
+
+    /**
+     * Adds a new reference to the scope
+     * @param name the name of the function
+     */
+    public Reference addReference(String name, ValidType returnType){
+        Reference r = new Reference(returnType);
+        addReferenceToScope(name, r);
+        referenceNumber++;
+        return r;
+    }
+
+    /**
+     * Set the start token of this scope
+     * @param start index to start
+     */
+    public void setStartIndex(int start) {
+        this.startToken = start;
     }
 
     /**

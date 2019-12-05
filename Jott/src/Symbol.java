@@ -1,16 +1,15 @@
 public class Symbol <T>{
-    enum variableType{Integer, Double, String}
 
-    private variableType type;
+    private ValidType type;
     private String varName;
     private T value;
 
-    public Symbol(variableType type, String varName){
+    public Symbol(ValidType type, String varName){
         this.type=type;
         this.varName=varName;
     }
 
-    public variableType getType(){
+    public ValidType getType(){
         return type;
     }
 
