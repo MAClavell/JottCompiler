@@ -233,10 +233,12 @@ public class Parser {
 
     private static void functDec(TreeNode node)
     {
+        State returnState = null;
         //Add the function type
         if(isTokenTypeId(tokenStream.get(tokenIndex)))
         {
-            node.addTreeNode(new State(State.stateType.TYPE, tokenStream.get(tokenIndex), tokenIndex));
+            returnState = new State(State.stateType.TYPE, tokenStream.get(tokenIndex), tokenIndex);
+            node.addTreeNode(returnState);
             tokenIndex++;
         }
         else LogError.log(LogError.ErrorType.SYNTAX, "Expected a Type, got " +
@@ -294,10 +296,9 @@ public class Parser {
                         tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
                 tokenStream.get(tokenIndex));
 
-        // TODO: Register function call in reference
         // Store return type as variable to input to function
-        // globalScope.addReference(startRefIndex, functionName, );
         // Add variables aka parameters to scope
+        globalScope.addReference(startRefIndex, functionName, returnState);
     }
 
     /**
