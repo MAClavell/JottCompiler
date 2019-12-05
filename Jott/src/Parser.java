@@ -243,9 +243,11 @@ public class Parser {
                         tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
                 tokenStream.get(tokenIndex));
 
+        String functionName = null;
         //Add the function name
         if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.ID))
         {
+            functionName = tokenStream.get(tokenIndex).getTokenText();
             node.addTreeNode(new State(State.stateType.ID, tokenStream.get(tokenIndex), tokenIndex));
             tokenIndex++;
         }
@@ -281,6 +283,7 @@ public class Parser {
 
         // f_stmt
         // TO DO f_stmt
+        Integer startRefIndex = tokenIndex;
         f_stmt(node.addTreeNode(new State(State.stateType.F_STMT)));
 
         if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndBlk)) {
@@ -293,7 +296,7 @@ public class Parser {
 
         // TODO: Register function call in reference
         // Store return type as variable to input to function
-        // globalScope.addReference(tokenIndex, );
+        // globalScope.addReference(startRefIndex, functionName, );
         // Add variables aka parameters to scope
     }
 
