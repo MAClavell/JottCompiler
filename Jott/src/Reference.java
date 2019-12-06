@@ -192,6 +192,10 @@ public class Reference {
         this.startToken = start;
     }
 
+    public void setEndIndex(int end){
+        this.endToken=end;
+    }
+
     /**
      * Adds the end brace to the reference
      * @param token the end of the current reference

@@ -268,6 +268,7 @@ public class Parser {
 
         //Create scope and add paremeters
         Reference funcScope = globalScope.addReference(functionName, returnType);
+        funcScope.setEndIndex(tokenStream.size());
         if(isTokenTypeId(tokenStream.get(tokenIndex))) {
             p_list(node.addTreeNode(new State(State.stateType.P_LIST)), funcScope);
         }
@@ -435,7 +436,10 @@ public class Parser {
         else LogError.log(LogError.ErrorType.SYNTAX, "Expected ')', got " +
                         tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
                 tokenStream.get(tokenIndex));
-        
+        if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndStmt)){
+            node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex), tokenIndex));
+            tokenIndex++;
+        }
         return node;
     }
 
@@ -593,9 +597,13 @@ public class Parser {
     private static void expr(TreeNode node) {
         checkSize();
 
+        if (globalScope.getReferenceWithName(tokenStream.get(tokenIndex).getTokenText())!=null) {
+            node.addTreeNode(functCall());
+        }
+
         // If the first token is an integer or a -integer/+integer (in i_expr)
         // Or if there is a relative op at tokenIndex + 1
-        if(isTokenTypeInteger(tokenIndex) || isTokenRelOp(tokenStream.get(tokenIndex+1))){
+        else if(isTokenTypeInteger(tokenIndex) || isTokenRelOp(tokenStream.get(tokenIndex+1))){
             node.addTreeNode(i_expr());
         }
 
