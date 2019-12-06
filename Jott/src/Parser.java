@@ -325,15 +325,12 @@ public class Parser {
             else LogError.log(LogError.ErrorType.SYNTAX, "Expected ';', got " +
                             tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
                     tokenStream.get(tokenIndex));
-        }
-        else if (token.getTokenType() != TokenType.EndParen) {
-            stmt(node);
 
-            // Check for semicolon
-            if (tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndStmt)) {
-                node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex), tokenIndex));
-                tokenIndex++;
-            }
+            // Recursive call
+            f_stmt(node);
+        }
+        else if (token.getTokenType() != TokenType.EndBlk) {
+            stmt(node);
 
             // Recursive call
             f_stmt(node);
@@ -447,77 +444,83 @@ public class Parser {
      * @param node the node to branch off of
      */
     private static void stmt(TreeNode node) {
+        String tokenText = tokenStream.get(tokenIndex).getTokenText();
+
         // If it is valid
-        if(tokenStream.get(tokenIndex).getTokenType()==TokenType.ID) {
-
-            String tokenText=tokenStream.get(tokenIndex).getTokenText();
-
+        if(tokenStream.get(tokenIndex).getTokenType()==TokenType.ID)
+        {
             // The print statement
-            if (tokenStream.get(tokenIndex).getTokenText().equals(PRINT)) {
+            if (tokenStream.get(tokenIndex).getTokenText().equals(PRINT))
+            {
                 print(node.addTreeNode(new State(State.stateType.PRINT)));
             }
 
             // The if statement
-            else if(tokenStream.get(tokenIndex).getTokenText().equals(IF)){
+            else if (tokenStream.get(tokenIndex).getTokenText().equals(IF))
+            {
                 if_stmt(node.addTreeNode(new State(State.stateType.IF_STMT)));
             }
 
             // The while statement
-            else if(tokenStream.get(tokenIndex).getTokenText().equals(WHILE)){
+            else if (tokenStream.get(tokenIndex).getTokenText().equals(WHILE))
+            {
                 while_loop(node.addTreeNode(new State(State.stateType.WHILE_LOOP)));
             }
 
             // The for statement
-            else if(tokenStream.get(tokenIndex).getTokenText().equals(FOR)){
+            else if (tokenStream.get(tokenIndex).getTokenText().equals(FOR))
+            {
                 for_loop(node.addTreeNode(new State(State.stateType.FOR_LOOP)));
 
             }
 
             // The assignment stmt
-            else if (tokenStream.get(tokenIndex).getTokenType().equals(TokenType.ID) &&
-                    tokenIndex+2 < tokenStream.size() && tokenStream.get(tokenIndex+2).getTokenType()==TokenType.Assign) {
+            else if (tokenIndex + 2 < tokenStream.size() && tokenStream.get(tokenIndex + 2).getTokenType() == TokenType.Assign)
+            {
                 asmt(node.addTreeNode(new State(State.stateType.ASMT)));
             }
             // The reassignment stmt
-            else if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.ID)&&
-                    tokenIndex+1<tokenStream.size()&&tokenStream.get(tokenIndex+1).getTokenType()==TokenType.Assign){
+            else if (tokenIndex + 1 < tokenStream.size() && tokenStream.get(tokenIndex + 1).getTokenType() == TokenType.Assign)
+            {
                 r_asmt(node.addTreeNode(new State(State.stateType.R_ASMT)));
                 node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex), tokenIndex));
                 tokenIndex++;
             }
 
             // The Function Declaration
-            else if(isTokenTypeId(tokenStream.get(tokenIndex))) {
+            else if (isTokenTypeId(tokenStream.get(tokenIndex)))
+            {
                 functDec(node);
             }
             // The Function Call
-            else if(isFunctCall(tokenIndex)){
+            else if (isFunctCall(tokenIndex))
+            {
                 node.addTreeNode(functCall());
             }
-
-            // The expression statement
-            else if(Character.isLowerCase(tokenText.charAt(0)) ||
-                    Character.isDigit(tokenText.charAt(0)) ||
-                    tokenText.equals(CONCAT)|| tokenText.equals(CHARAT) ||
-                    tokenText.equals("-") || tokenText.equals("+") || tokenText.equals(".") ||
-                    tokenStream.get(tokenIndex).getTokenType().equals(TokenType.String)) {
-                //Add expression
-                expr(node.addTreeNode(new State(State.stateType.EXPR)));
-
-                //Add end statement
-                if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndStmt)) {
-                    node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex), tokenIndex));
-                    tokenIndex++;
-                }
-                else LogError.log(LogError.ErrorType.SYNTAX, "Expected ';', got " +
-                                tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
-                        tokenStream.get(tokenIndex));
-            }
-
             // Error
-            else{
+            else
+            {
                 LogError.log(LogError.ErrorType.SYNTAX, "Invalid statement", tokenStream.get(tokenIndex));
             }
+        }
+        // The expression statement
+        else if(Character.isLowerCase(tokenText.charAt(0)) ||
+                Character.isDigit(tokenText.charAt(0)) ||
+                tokenText.equals(CONCAT)|| tokenText.equals(CHARAT) ||
+                tokenText.equals("-") || tokenText.equals("+") || tokenText.equals(".") ||
+                tokenStream.get(tokenIndex).getTokenType().equals(TokenType.String))
+        {
+            //Add expression
+            expr(node.addTreeNode(new State(State.stateType.EXPR)));
+
+            //Add end statement
+            if (tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndStmt))
+            {
+                node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex), tokenIndex));
+                tokenIndex++;
+            } else LogError.log(LogError.ErrorType.SYNTAX, "Expected ';', got " +
+                            tokenStream.get(tokenIndex).getTokenType() + " '" + tokenStream.get(tokenIndex).getTokenText() + "'",
+                    tokenStream.get(tokenIndex));
         }
 
         // Error

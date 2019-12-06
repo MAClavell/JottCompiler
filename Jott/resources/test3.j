@@ -1,8 +1,11 @@
+4+4;
 Integer test(Integer x, String d)
 {
-    if(x == 2)
+    4+4;
+    Integer t = 3;
+    if(t == 3)
     {
-        return 5;
+        print("x");
     }
     return 3;
 }
