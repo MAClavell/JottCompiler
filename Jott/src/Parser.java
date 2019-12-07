@@ -438,7 +438,6 @@ public class Parser {
         else LogError.log(LogError.ErrorType.SYNTAX, "Expected ')', got " +
                         tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
                 tokenStream.get(tokenIndex));
-
         return node;
     }
 
@@ -499,6 +498,13 @@ public class Parser {
             else if (isFunctCall(tokenIndex))
             {
                 node.addTreeNode(functCall());
+                if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndStmt)) {
+                    node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex), tokenIndex));
+                    tokenIndex++;
+                }
+                else LogError.log(LogError.ErrorType.SYNTAX, "Expected ';', got " +
+                                tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
+                        tokenStream.get(tokenIndex));
             }
             // Error
             else
@@ -569,6 +575,13 @@ public class Parser {
 
         else{
             expr(node.addTreeNode(new State(State.stateType.EXPR)));
+            if(tokenStream.get(tokenIndex).getTokenType()==TokenType.EndStmt) {
+                node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex), tokenIndex));
+            }
+            else{
+                LogError.log(LogError.ErrorType.SYNTAX, "Invalid statement", tokenStream.get(tokenIndex));
+            }
+            tokenIndex++;
         }
     }
 
@@ -754,6 +767,14 @@ public class Parser {
 
         else{
             node.addTreeNode(functCall());
+            // Adds the end_statement
+            if (tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndStmt)) {
+                node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex), tokenIndex));
+                tokenIndex++;
+            }
+            else LogError.log(LogError.ErrorType.SYNTAX, "Expected ';', got " +
+                            tokenStream.get(tokenIndex).getTokenType() + " '" + tokenStream.get(tokenIndex).getTokenText() + "'",
+                    tokenStream.get(tokenIndex));
         }
     }
 

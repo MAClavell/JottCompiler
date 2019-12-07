@@ -268,9 +268,6 @@ public class SemanticAnalysis {
     }
 
     private static void funct_call(TreeNode node){
-        if(node.getChildren().get(0).getToken().getTokenText().equals("x")){
-            System.out.println("p");
-        }
         Reference r=globalScope.getReferenceWithName(node.getChildren().get(0).getToken().getTokenText());
         TreeNode getFunctNode=r.getFunctionCode();
         HashMap<String, Symbol> parameters=new HashMap<>();
