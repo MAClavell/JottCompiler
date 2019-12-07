@@ -301,7 +301,7 @@ public class Parser {
                         tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
                 tokenStream.get(tokenIndex));
 
-        funcScope.endRecentReference(tokenIndex);
+        funcScope.endRecentReference(tokenIndex-1);
     }
 
     /**
@@ -316,7 +316,7 @@ public class Parser {
             node.addTreeNode(new State(State.stateType.RETURN, tokenStream.get(tokenIndex), tokenIndex));
             tokenIndex++;
 
-            expr(node);
+            expr(node.addTreeNode(new State(State.stateType.EXPR)));
 
             //Add end statement
             if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndStmt)) {
@@ -328,16 +328,18 @@ public class Parser {
                     tokenStream.get(tokenIndex));
 
             // Recursive call
-            f_stmt(node);
+            f_stmt(node.addTreeNode(new State(State.stateType.F_STMT)));
         }
         else if (token.getTokenType() != TokenType.EndBlk) {
-            stmt(node);
+            stmt(node.addTreeNode(new State(State.stateType.STMT)));
 
             // Recursive call
-            f_stmt(node);
+            f_stmt(node.addTreeNode(new State(State.stateType.F_STMT)));
         }
         // Adds an epsilon otherwise
         else{
+            //globalScope.endRecentReference(tokenIndex);
+
             node.addTreeNode(new State(State.stateType.EPSILON));
         }
     }
@@ -597,7 +599,8 @@ public class Parser {
     private static void expr(TreeNode node) {
         checkSize();
 
-        if (globalScope.getReferenceWithName(tokenStream.get(tokenIndex).getTokenText())!=null) {
+        if (globalScope.getReferenceWithName(tokenStream.get(tokenIndex).getTokenText())!=null &&
+                tokenStream.get(tokenIndex).getTokenType()!=TokenType.String) {
             node.addTreeNode(functCall());
         }
 
@@ -726,28 +729,35 @@ public class Parser {
                         tokenStream.get(tokenIndex).getTokenType() + " '" + tokenStream.get(tokenIndex).getTokenText() + "'",
                 tokenStream.get(tokenIndex));
 
-        // Adds the expr
-        switch (varType) {
-            case Double:
-                node.addTreeNode(d_expr());
-                break;
-            case Integer:
-                node.addTreeNode(i_expr());
-                break;
-            case String:
-                node.addTreeNode(s_expr());
-                break;
-            default:
-                break;
+        Reference r=globalScope.getReferenceWithName(tokenStream.get(tokenIndex).getTokenText());
+
+        if(r==null) {
+            // Adds the expr
+            switch (varType) {
+                case Double:
+                    node.addTreeNode(d_expr());
+                    break;
+                case Integer:
+                    node.addTreeNode(i_expr());
+                    break;
+                case String:
+                    node.addTreeNode(s_expr());
+                    break;
+                default:
+                    break;
+            }
+            // Adds the end_statement
+            if (tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndStmt)) {
+                node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex), tokenIndex));
+                tokenIndex++;
+            } else LogError.log(LogError.ErrorType.SYNTAX, "Expected ';', got " +
+                            tokenStream.get(tokenIndex).getTokenType() + " '" + tokenStream.get(tokenIndex).getTokenText() + "'",
+                    tokenStream.get(tokenIndex));
         }
 
-        // Adds the end_statement
-        if (tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndStmt)) {
-            node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex), tokenIndex));
-            tokenIndex++;
-        } else LogError.log(LogError.ErrorType.SYNTAX, "Expected ';', got " +
-                        tokenStream.get(tokenIndex).getTokenType() + " '" + tokenStream.get(tokenIndex).getTokenText() + "'",
-                tokenStream.get(tokenIndex));
+        else{
+            node.addTreeNode(functCall());
+        }
     }
 
 

@@ -47,8 +47,16 @@ public class SemanticAnalysis {
 
         State.stateType stateType=node.getChildren().get(0).getState().getState();
 
+        if(stateType== State.stateType.TYPE){
+            functDec(node, node.getChildren().get(1).getToken().getTokenText());
+        }
+
+        else if(stateType == State.stateType.F_CALL){
+            funct_call(node.getChildren().get(0));
+        }
+
         // Evaluates the print statement
-        if(node.getChildren().get(0).getState().getState() == State.stateType.PRINT){
+        else if(node.getChildren().get(0).getState().getState() == State.stateType.PRINT){
             print(node.getChildren().get(0));
         }
 
@@ -241,6 +249,110 @@ public class SemanticAnalysis {
         }
     }
 
+    private static void functDec(TreeNode node, String name){
+        Reference function=globalScope.getReferenceWithName(name);
+
+        if(node.getChildren().get(3).getState().getState()== State.stateType.P_LIST){
+            fc_p_list(node.getChildren().get(3), function, 0);
+        }
+
+        // If the code starts at 5
+        if(node.getChildren().get(5).getState().getState()== State.stateType.F_STMT){
+            function.addFunctionCode(node.getChildren().get(5));
+        }
+
+        // Otherwise code starts at 6
+        else{
+            function.addFunctionCode(node.getChildren().get(6));
+        }
+    }
+
+    private static void funct_call(TreeNode node){
+        if(node.getChildren().get(0).getToken().getTokenText().equals("x")){
+            System.out.println("p");
+        }
+        Reference r=globalScope.getReferenceWithName(node.getChildren().get(0).getToken().getTokenText());
+        TreeNode getFunctNode=r.getFunctionCode();
+        HashMap<String, Symbol> parameters=new HashMap<>();
+        //r.clearFunctionSymbols();
+        if(node.getChildren().get(2).getChildren().size()>0){
+            p_list(node.getChildren().get(2), r, 0, parameters);
+        }
+        r.addFrameStack(r.getPararmeters(), r.getSymbols());
+        r.addParameters(parameters);
+        f_stmt(getFunctNode, r);
+        r.setSymbols(r.deleteFrameStack());
+    }
+
+    private static void p_list(TreeNode node, Reference r, int num, HashMap<String, Symbol> parameters){
+        String param=r.getParameter(num);
+        parameters.put(param, new Symbol(r.getSymbol(param).getType(), param));
+        if(node.getChildren().get(0).getState().getState()== State.stateType.I_EXPR){
+            parameters.get(param).changeValue(i_expr(node.getChildren().get(0)));
+        }
+        else if(node.getChildren().get(0).getState().getState()== State.stateType.D_EXPR){
+            parameters.get(param).changeValue(d_expr(node.getChildren().get(0)));
+        }
+        else if(node.getChildren().get(0).getState().getState()== State.stateType.S_EXPR){
+            parameters.get(param).changeValue(s_expr(node.getChildren().get(0)));
+        }
+        else if(node.getChildren().get(0).getState().getState()== State.stateType.F_CALL){
+            funct_call(node.getChildren().get(0));
+            Reference calledFunction=globalScope.getReferenceWithName(node.getChildren().get(0).getChildren().get(0).getToken().getTokenText());
+            parameters.get(param).changeValue(calledFunction.getReturnedValue().getValue());
+        }
+        if(node.getChildren().size()==3){
+            p_list(node.getChildren().get(2), r, ++num, parameters);
+        }
+    }
+
+    private static void fc_p_list(TreeNode node, Reference func, int num){
+        func.addParameter(node.getChildren().get(1).getToken().getTokenText(), num);
+        if(node.getChildren().size()==4){
+            fc_p_list(node.getChildren().get(3), func, num+1);
+        }
+    }
+
+    private static void f_stmt(TreeNode node, Reference function){
+        if(node.getChildren().get(0).getState().getState()== State.stateType.STMT){
+            TreeNode asmt=node.getChildren().get(0).getChildren().get(0);
+            if(asmt.getState().getState()== State.stateType.ASMT){
+
+                String id=asmt.getChildren().get(1).getToken().getTokenText();
+
+                switch(asmt.getChildren().get(0).getToken().getTokenText()){
+                    case "Integer":
+                        function.getSymbols().put(id, new Symbol(ValidType.Integer, id));
+                        break;
+                    case "Double":
+                        function.getSymbols().put(id, new Symbol(ValidType.Double, id));
+                        break;
+                    case "String":
+                        function.getSymbols().put(id, new Symbol(ValidType.String, id));
+                }
+            }
+            stmt(node.getChildren().get(0));
+            if(node.getChildren().get(1).getState().getState()== State.stateType.F_STMT){
+                f_stmt(node.getChildren().get(1), function);
+            }
+        }
+        else if(node.getChildren().get(0).getState().getState()== State.stateType.RETURN){
+            TreeNode n=node.getChildren().get(1).getChildren().get(0);
+            switch(n.getState().getState()){
+                case I_EXPR:
+                    function.getReturnedValue().changeValue(i_expr(n));
+                    break;
+                case D_EXPR:
+                    function.getReturnedValue().changeValue(d_expr(n));
+                    break;
+                case S_EXPR:
+                    function.getReturnedValue().changeValue(s_expr(n));
+                    break;
+                default:
+            }
+        }
+    }
+
     private static void b_stmt_list(TreeNode node){
         b_stmt(node.getChildren().get(0));
         if(node.getChildren().size()==2){
@@ -251,8 +363,12 @@ public class SemanticAnalysis {
     private static void b_stmt(TreeNode node){
         TreeNode childNode=node.getChildren().get(0);
 
+        if(childNode.getChildren().get(0).getState().getState()== State.stateType.F_CALL){
+            funct_call(childNode.getChildren().get(0));
+        }
+
         // The reassignment state
-        if(childNode.getState().getState()== State.stateType.R_ASMT){
+        else if(childNode.getState().getState()== State.stateType.R_ASMT){
             r_asmt(childNode);
         }
 
@@ -368,8 +484,22 @@ public class SemanticAnalysis {
             }
 
             // If the statement in the print is a String expression
-            else{
+            else if(stmtNode.getState().getState()== State.stateType.S_EXPR){
                 toPrint.add(String.valueOf(s_expr(stmtNode)));
+            }
+
+            // If it is a function call
+            else if(stmtNode.getState().getState()== State.stateType.F_CALL){
+                Reference r=globalScope.getReferenceWithName(stmtNode.getChildren().get(0).getToken().getTokenText());
+
+                funct_call(stmtNode);
+                if(r.getReturnType()!= ValidType.Void){
+                    toPrint.add(String.valueOf(r.getReturnedValue().getValue()));
+                }
+
+                else{
+                    //LogError.log(LogError.ErrorType.SYNTAX, "Invalid ");
+                }
             }
         }
     }
@@ -380,14 +510,38 @@ public class SemanticAnalysis {
         String id=node.getChildren().get(1).getToken().getTokenText();
         TreeNode exprNode=node.getChildren().get(3);
 
+        if(exprNode.getState().getState()== State.stateType.F_CALL){
+            funct_call(exprNode);
+
+            Symbol s=globalScope.getReferenceWithName(exprNode.getChildren().get(0).getToken().getTokenText()).getReturnedValue();
+
+            if(globalScope.getScopedSymbol(id, childNode.getState().getTokenIndex()).getType()==s.getType()){
+                globalScope.getScopedSymbol(id, childNode.getState().getTokenIndex()).changeValue(s.getValue());
+            }
+            else{
+                LogError.log(LogError.ErrorType.SYNTAX,
+                        globalScope.getScopedSymbol(id,
+                                childNode.getState().getTokenIndex()).getType()+" expected but got "+s.getType(),
+                        node.getChildren().get(1).getToken());
+            }
+        }
+
         // An Integer assignment statement
-        if(childNode.getToken().getTokenText().equals("Integer")){
+        else if(childNode.getToken().getTokenText().equals("Integer")){
 
             //If this is a valid id
             if(globalScope.hasSymbol(id, childNode.getState().getTokenIndex()) &&
                     globalScope.getScopedSymbol(id, childNode.getState().getTokenIndex()).getType()
                             == ValidType.Integer){
-                globalScope.getScopedSymbol(id, childNode.getState().getTokenIndex()).changeValue(i_expr(exprNode));
+                if(exprNode.getState().getState()== State.stateType.F_CALL){
+                    funct_call(exprNode);
+                    globalScope.getScopedSymbol(id, childNode.getState().getTokenIndex()).changeValue(
+                            globalScope.getReferenceWithName(exprNode.getChildren().get(0).getToken().getTokenText()).getReturnedValue()
+                    );
+                }
+                else {
+                    globalScope.getScopedSymbol(id, childNode.getState().getTokenIndex()).changeValue(i_expr(exprNode));
+                }
             }
             else {
                 LogError.log(LogError.ErrorType.SYNTAX, "Expected a valid ID, got " +

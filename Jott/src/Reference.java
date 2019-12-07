@@ -1,4 +1,6 @@
 import java.util.HashMap;
+import java.util.Queue;
+import java.util.Stack;
 
 enum ValidType{Integer, Double, String, Void}
 
@@ -11,18 +13,33 @@ public class Reference {
     private ValidType returnType;
     private HashMap<String, Symbol> scopedSymbols;
     private HashMap<String, Reference> scopes;
+    // Maps the name to the parameter number
+    private Stack<HashMap<String, Symbol>> functionalSymbols;
+    private HashMap<String, Integer> pararmeterList;
+    private TreeNode functionCode;
+    private Symbol returnedValue;
 
     public Reference(int startToken, ValidType returnType){
         this.startToken=startToken;
         this.scopedSymbols=new HashMap<String, Symbol>();
         this.scopes=new HashMap<String, Reference>();
+        this.pararmeterList=new HashMap<String, Integer>();
+        this.functionalSymbols=new Stack<>();
         this.returnType = returnType;
+        if(returnType!=ValidType.Void){
+            returnedValue=new Symbol(returnType, null);
+        }
     }
 
     public Reference(ValidType returnType){
         this.scopedSymbols=new HashMap<String, Symbol>();
         this.scopes=new HashMap<String, Reference>();
+        this.pararmeterList=new HashMap<String, Integer>();
+        this.functionalSymbols=new Stack<>();
         this.returnType = returnType;
+        if(returnType!=ValidType.Void){
+            returnedValue=new Symbol(returnType, null);
+        }
     }
 
     /**
@@ -72,7 +89,7 @@ public class Reference {
      * @param token the token of the reference
      * @return
      */
-    private Reference getReferenceAt(int token){
+    public Reference getReferenceAt(int token){
         for(Reference r:scopes.values()){
             if(r.getStartToken()<=token && r.getEndToken()>=token){
                 return r;
@@ -173,6 +190,72 @@ public class Reference {
         return r;
     }
 
+    public void addFunctionCode(TreeNode functionCode){
+        this.functionCode=functionCode;
+    }
+
+    public TreeNode getFunctionCode(){
+        return functionCode;
+    }
+
+    public HashMap<String, Symbol> addFrameStack(HashMap<String, Integer> pararmeterList, HashMap<String, Symbol> symbols){
+        functionalSymbols.add(symbols);
+        /*for(String parameter:pararmeterList.keySet()){
+            functionalSymbols.peek().put(parameter, new Symbol(symbols.get(parameter).getType(),
+                    symbols.get(parameter).getVarName()));
+        }*/
+        return functionalSymbols.peek();
+    }
+
+    public HashMap<String, Symbol> deleteFrameStack(){
+        return functionalSymbols.pop();
+    }
+
+    public void setSymbols(HashMap<String, Symbol> symbols){
+        this.scopedSymbols=symbols;
+    }
+
+    public void addParameter(String name, int num){
+        pararmeterList.put(name, num);
+    }
+
+    public void addParameters(HashMap<String, Symbol> parameters){
+        this.scopedSymbols=parameters;
+    }
+
+    public String getParameter(int num){
+        for(String id:pararmeterList.keySet()){
+            if(pararmeterList.get(id)==num){
+                return id;
+            }
+        }
+        return null;
+    }
+
+    public HashMap<String, Integer> getPararmeters(){
+        return pararmeterList;
+    }
+
+    public HashMap<String, Symbol> getSymbols(){
+        return scopedSymbols;
+    }
+
+    public void clearFunctionSymbols(){
+        for(String id:scopedSymbols.keySet()){
+            if(!pararmeterList.containsKey(id)){
+                scopedSymbols.remove(id);
+            }
+            else{
+                scopedSymbols.replace(id, new Symbol(scopedSymbols.get(id).getType(),
+                        scopedSymbols.get(id).getVarName()));
+            }
+        }
+    }
+
+    public Symbol getReturnedValue(){
+        return returnedValue;
+    }
+
     /**
      * Adds a new reference to the scope
      * @param name the name of the function
@@ -228,5 +311,9 @@ public class Reference {
             scopeToAdd=scope;
         }
         scopeToAdd.addSymbolToScope(name, s);
+    }
+
+    public Symbol getSymbol(String name){
+        return scopedSymbols.get(name);
     }
 }

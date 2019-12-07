@@ -24,16 +24,16 @@ public class Jott {
 
         //Create tokens from file
         ArrayList<Token> tokens = Scanner.tokenize(text, args[0]);
-        for (Token t : tokens) {
+        /*for (Token t : tokens) {
             System.out.println(t);
         }
-        System.out.println("");
+        System.out.println("");*/
 
         Reference global=new Reference(0, ValidType.Void);
         global.endRecentReference(tokens.size()-1);
 
         TreeNode root = Parser.parse(tokens, global);
-        System.out.println(root);
+        //System.out.println(root);
         SemanticAnalysis.output(root, global);
     }
 }
