@@ -438,10 +438,7 @@ public class Parser {
         else LogError.log(LogError.ErrorType.SYNTAX, "Expected ')', got " +
                         tokenStream.get(tokenIndex).getTokenType()+" '"+tokenStream.get(tokenIndex).getTokenText()+"'",
                 tokenStream.get(tokenIndex));
-        if(tokenStream.get(tokenIndex).getTokenType().equals(TokenType.EndStmt)){
-            node.addTreeNode(new State(State.stateType.END_STATEMENT, tokenStream.get(tokenIndex), tokenIndex));
-            tokenIndex++;
-        }
+
         return node;
     }
 
